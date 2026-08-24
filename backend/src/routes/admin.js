@@ -1,0 +1,229 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const { pool } = require('../db');
+const { requireAdmin } = require('../middleware/auth');
+const { upload, UPLOAD_DIR, mediaTypeFor } = require('../middleware/upload');
+
+const router = express.Router();
+router.use(requireAdmin); // every route below requires role = 'admin'
+
+// Keeps products.image_url (used everywhere for quick thumbnail lookups,
+// e.g. shop grid) in sync with whichever image is currently flagged as the
+// thumbnail in product_images.
+async function syncThumbnail(productId) {
+  const result = await pool.query(
+    'SELECT url FROM product_images WHERE product_id = $1 AND is_thumbnail = TRUE LIMIT 1',
+    [productId]
+  );
+  await pool.query('UPDATE products SET image_url = $1 WHERE id = $2', [result.rows[0]?.url || null, productId]);
+}
+
+// --- Dashboard summary ---
+router.get('/summary', async (req, res) => {
+  const [orders, revenue, products, customers] = await Promise.all([
+    pool.query(`SELECT COUNT(*)::int AS count FROM orders WHERE status != 'cancelled'`),
+    pool.query(`SELECT COALESCE(SUM(total_pence),0)::bigint AS total FROM orders WHERE status = 'paid'`),
+    pool.query(`SELECT COUNT(*)::int AS count FROM products`),
+    pool.query(`SELECT COUNT(*)::int AS count FROM users WHERE role = 'customer'`),
+  ]);
+  res.json({
+    orderCount: orders.rows[0].count,
+    revenuePence: Number(revenue.rows[0].total),
+    productCount: products.rows[0].count,
+    customerCount: customers.rows[0].count,
+  });
+});
+
+// --- Products CRUD ---
+const VALID_AVAILABILITY = ['in_stock', 'out_of_stock', 'preorder'];
+
+router.post('/products', async (req, res) => {
+  const { sku, name, slug, category, description, pricePence, compareAtPricePence, imageUrl, stockQty, availability, availabilityNote } = req.body;
+  const status = VALID_AVAILABILITY.includes(availability) ? availability : 'in_stock';
+  const result = await pool.query(
+    `INSERT INTO products (sku, name, slug, category, description, price_pence, compare_at_price_pence, image_url, stock_qty, is_placeholder, availability, availability_note, in_stock)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, FALSE, $10, $11, $12) RETURNING *`,
+    [sku, name, slug, category, description, pricePence, compareAtPricePence || null, imageUrl || null, stockQty || 0, status, availabilityNote || null, status !== 'out_of_stock']
+  );
+  res.json(result.rows[0]);
+});
+
+router.put('/products/:id', async (req, res) => {
+  const { name, category, description, pricePence, compareAtPricePence, imageUrl, stockQty, availability, availabilityNote } = req.body;
+  const status = VALID_AVAILABILITY.includes(availability) ? availability : 'in_stock';
+  const result = await pool.query(
+    `UPDATE products SET name=$1, category=$2, description=$3, price_pence=$4,
+       compare_at_price_pence=$5, image_url=$6, stock_qty=$7, availability=$8, availability_note=$9,
+       in_stock=$10, is_placeholder=FALSE
+     WHERE id=$11 RETURNING *`,
+    [name, category, description, pricePence, compareAtPricePence || null, imageUrl, stockQty, status, availabilityNote || null, status !== 'out_of_stock', req.params.id]
+  );
+  if (!result.rows[0]) return res.status(404).json({ error: 'Product not found.' });
+  res.json(result.rows[0]);
+});
+
+router.delete('/products/:id', async (req, res) => {
+  await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+  res.json({ deleted: true });
+});
+
+// --- Orders ---
+router.get('/orders', async (req, res) => {
+  const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200');
+  res.json(result.rows);
+});
+
+router.put('/orders/:id/status', async (req, res) => {
+  const { status } = req.body;
+  const allowed = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+  if (!allowed.includes(status)) return res.status(400).json({ error: 'Invalid status.' });
+  const result = await pool.query('UPDATE orders SET status = $1 WHERE id = $2 RETURNING *', [status, req.params.id]);
+  res.json(result.rows[0]);
+});
+
+// --- Discount codes ---
+router.get('/discounts', async (req, res) => {
+  const result = await pool.query('SELECT * FROM discount_codes ORDER BY code');
+  res.json(result.rows);
+});
+
+router.post('/discounts', async (req, res) => {
+  const { code, type, value, minSpendPence, expiresAt, usageLimit } = req.body;
+  const result = await pool.query(
+    `INSERT INTO discount_codes (code, type, value, min_spend_pence, expires_at, usage_limit)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [code.toUpperCase(), type, value, minSpendPence || 0, expiresAt || null, usageLimit || null]
+  );
+  res.json(result.rows[0]);
+});
+
+router.put('/discounts/:id', async (req, res) => {
+  const { active } = req.body;
+  const result = await pool.query('UPDATE discount_codes SET active = $1 WHERE id = $2 RETURNING *', [active, req.params.id]);
+  res.json(result.rows[0]);
+});
+
+// --- Product images & videos ---
+
+// Upload one or more images/videos for a product. Field name must be "images".
+// The first PHOTO uploaded becomes the thumbnail automatically — videos are
+// never eligible, so the storefront thumbnail always stays a picture even if
+// a video is uploaded first or is the only new file in this batch.
+router.post('/products/:id/images', upload.array('images', 8), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const productResult = await pool.query('SELECT id FROM products WHERE id = $1', [id]);
+    if (!productResult.rows[0]) return res.status(404).json({ error: 'Product not found.' });
+
+    const existingCount = await pool.query('SELECT COUNT(*)::int AS count FROM product_images WHERE product_id = $1', [id]);
+    let nextPosition = existingCount.rows[0].count;
+    let thumbnailAssigned = nextPosition > 0
+      ? (await pool.query('SELECT id FROM product_images WHERE product_id = $1 AND is_thumbnail = TRUE', [id])).rows.length > 0
+      : false;
+
+    const inserted = [];
+    for (const file of req.files) {
+      const url = `/uploads/${file.filename}`;
+      const mediaType = mediaTypeFor(file);
+      const makeThumbnail = mediaType === 'image' && !thumbnailAssigned;
+      if (makeThumbnail) thumbnailAssigned = true;
+      const result = await pool.query(
+        `INSERT INTO product_images (product_id, url, media_type, is_thumbnail, position) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+        [id, url, mediaType, makeThumbnail, nextPosition]
+      );
+      inserted.push(result.rows[0]);
+      nextPosition += 1;
+    }
+    await syncThumbnail(id);
+    res.json(inserted);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message || 'Upload failed.' });
+  }
+});
+
+router.get('/products/:id/images', async (req, res) => {
+  const result = await pool.query('SELECT * FROM product_images WHERE product_id = $1 ORDER BY position', [req.params.id]);
+  res.json(result.rows);
+});
+
+// Mark a specific image as the thumbnail (unsets any previous thumbnail).
+// Videos are rejected — the storefront thumbnail must always be a photo.
+router.put('/products/:id/images/:imageId/thumbnail', async (req, res) => {
+  const { id, imageId } = req.params;
+  const target = await pool.query('SELECT media_type FROM product_images WHERE id = $1 AND product_id = $2', [imageId, id]);
+  if (!target.rows[0]) return res.status(404).json({ error: 'Media not found.' });
+  if (target.rows[0].media_type !== 'image') {
+    return res.status(400).json({ error: 'Only photos can be set as the thumbnail — videos can\'t be used as the storefront thumbnail.' });
+  }
+  await pool.query('UPDATE product_images SET is_thumbnail = FALSE WHERE product_id = $1', [id]);
+  await pool.query('UPDATE product_images SET is_thumbnail = TRUE WHERE id = $1 AND product_id = $2', [imageId, id]);
+  await syncThumbnail(id);
+  const result = await pool.query('SELECT * FROM product_images WHERE product_id = $1 ORDER BY position', [id]);
+  res.json(result.rows);
+});
+
+router.delete('/products/:id/images/:imageId', async (req, res) => {
+  const { id, imageId } = req.params;
+  const imageResult = await pool.query('SELECT * FROM product_images WHERE id = $1 AND product_id = $2', [imageId, id]);
+  const image = imageResult.rows[0];
+  if (!image) return res.status(404).json({ error: 'Media not found.' });
+
+  await pool.query('DELETE FROM product_images WHERE id = $1', [imageId]);
+
+  // Clean up the file on disk (best-effort — don't fail the request if this errors)
+  const filename = path.basename(image.url);
+  fs.unlink(path.join(UPLOAD_DIR, filename), () => {});
+
+  // If we just deleted the thumbnail, promote the next remaining PHOTO
+  // (never a video) as the new thumbnail.
+  if (image.is_thumbnail) {
+    const remaining = await pool.query(
+      `SELECT id FROM product_images WHERE product_id = $1 AND media_type = 'image' ORDER BY position LIMIT 1`,
+      [id]
+    );
+    if (remaining.rows[0]) {
+      await pool.query('UPDATE product_images SET is_thumbnail = TRUE WHERE id = $1', [remaining.rows[0].id]);
+    }
+  }
+  await syncThumbnail(id);
+  res.json({ deleted: true });
+});
+
+// --- Product variants (e.g. hair extension types, sizes) ---
+router.get('/products/:id/variants', async (req, res) => {
+  const result = await pool.query('SELECT * FROM product_variants WHERE product_id = $1 ORDER BY name, value', [req.params.id]);
+  res.json(result.rows);
+});
+
+router.post('/products/:id/variants', async (req, res) => {
+  const { id } = req.params;
+  const { name, value, priceDeltaPence } = req.body;
+  if (!name || !value) return res.status(400).json({ error: 'Both a name (e.g. "Type") and a value (e.g. "Straight 18\\"") are required.' });
+  const productResult = await pool.query('SELECT id FROM products WHERE id = $1', [id]);
+  if (!productResult.rows[0]) return res.status(404).json({ error: 'Product not found.' });
+  const result = await pool.query(
+    `INSERT INTO product_variants (product_id, name, value, price_delta_pence) VALUES ($1,$2,$3,$4) RETURNING *`,
+    [id, name, value, Number(priceDeltaPence) || 0]
+  );
+  res.json(result.rows[0]);
+});
+
+router.delete('/products/:id/variants/:variantId', async (req, res) => {
+  const { id, variantId } = req.params;
+  const result = await pool.query('DELETE FROM product_variants WHERE id = $1 AND product_id = $2 RETURNING id', [variantId, id]);
+  if (!result.rows[0]) return res.status(404).json({ error: 'Variant not found.' });
+  res.json({ deleted: true });
+});
+
+// --- Customers (read-only list) ---
+router.get('/customers', async (req, res) => {
+  const result = await pool.query(
+    'SELECT id, email, full_name, is_vip, reward_points, created_at FROM users WHERE role = $1 ORDER BY created_at DESC',
+    ['customer']
+  );
+  res.json(result.rows);
+});
+
+module.exports = router;
