@@ -23,7 +23,7 @@ export default function Shop() {
       <div className="wrap">
         <div className="section-head">
           <div className="eyebrow">Shop</div>
-          <h2>The full EcoPadi pantry.</h2>
+          <h2>The full Ecopadi pantry.</h2>
           <p>Browse by category, or search for what you're craving.</p>
         </div>
 

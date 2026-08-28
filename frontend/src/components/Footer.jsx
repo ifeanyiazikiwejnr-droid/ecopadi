@@ -7,9 +7,9 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <div className="logo">
-              <img src="/brand/logo-white.png" alt="EcoPadi — groceries from home" className="logo-badge logo-badge-footer" />
+              <img src="/brand/logo-white.png" alt="Ecopadi — groceries from home" className="logo-badge logo-badge-footer" />
             </div>
-            <p>EcoPadi UK Limited is committed to bringing authentic African food products closer to Africans living in the United Kingdom.</p>
+            <p>Ecopadi UK Limited is committed to bringing authentic African food products closer to Africans living in the United Kingdom.</p>
             <p style={{ marginTop: 10, fontSize: 12.5, opacity: .6 }}>Registered in England &amp; Wales, Company No. 17215991.</p>
           </div>
           <div className="footer-col">
@@ -36,7 +36,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} EcoPadi UK Limited. Bringing Africa closer to home.</span>
+          <span>© {new Date().getFullYear()} Ecopadi UK Limited. Bringing Africa closer to home.</span>
           <div className="footer-dots"><span /><span /><span /></div>
         </div>
       </div>

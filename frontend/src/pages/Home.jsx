@@ -62,8 +62,8 @@ export default function Home() {
             <div className="eyebrow">We Are Excited To Meet You!</div>
             <h2>Food is more than nourishment — it's culture, memories, family, and home.</h2>
             <p className="story-copy">
-              At EcoPadi UK Limited, we understand that food carries identity. Founded with a passion for
-              connecting Africans in the United Kingdom to the authentic tastes they grew up with, EcoPadi UK
+              At Ecopadi UK Limited, we understand that food carries identity. Founded with a passion for
+              connecting Africans in the United Kingdom to the authentic tastes they grew up with, Ecopadi UK
               supplies carefully sourced African foods, spices, proteins, and traditional ingredients from
               trusted producers and processors.
             </p>
@@ -73,7 +73,7 @@ export default function Home() {
             </p>
             <p className="story-copy">
               Whether you're preparing a traditional family meal or stocking your African grocery shelves,
-              EcoPadi UK is committed to delivering products that preserve the true flavours of Africa.
+              Ecopadi UK is committed to delivering products that preserve the true flavours of Africa.
             </p>
           </div>
           <div className="story-photo">
@@ -86,7 +86,7 @@ export default function Home() {
         <div className="wrap">
           <div className="section-head">
             <div className="eyebrow">What Sets Us Apart</div>
-            <h2>Why choose EcoPadi?</h2>
+            <h2>Why choose Ecopadi?</h2>
           </div>
           <div className="why-grid">
             {WHY_ECOPADI.map((item) => (
@@ -133,7 +133,7 @@ export default function Home() {
           <div className="commitment-block">
             <h3>Our Commitment</h3>
             <p>
-              At EcoPadi UK, every product represents our commitment to authenticity, quality, and customer
+              At Ecopadi UK, every product represents our commitment to authenticity, quality, and customer
               satisfaction. We believe every African living abroad deserves easy access to the ingredients that
               connect them to their roots, traditions, and favourite meals. That is why we continually strive to
               source, package, and deliver products that bring the taste of home closer to you.
