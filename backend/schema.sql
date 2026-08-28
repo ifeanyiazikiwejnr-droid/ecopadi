@@ -60,17 +60,33 @@ CREATE TABLE IF NOT EXISTS product_images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID REFERENCES products(id) ON DELETE CASCADE,
   url TEXT NOT NULL,
-  media_type TEXT NOT NULL DEFAULT 'image',  -- 'image' | 'video'
+  external_id TEXT,                          -- Cloudinary public_id, needed to delete the file later
   is_thumbnail BOOLEAN NOT NULL DEFAULT FALSE,
   position INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Upgrades a product_images table created before video support existed.
-ALTER TABLE product_images ADD COLUMN IF NOT EXISTS media_type TEXT NOT NULL DEFAULT 'image';
+ALTER TABLE product_images ADD COLUMN IF NOT EXISTS external_id TEXT;
+
+-- Video support has been removed. Any previously uploaded videos are dropped
+-- here — they were stored on the backend's local disk anyway, which Render
+-- wipes on every redeploy, so these rows were already pointing at dead files.
+-- Guarded so this is a no-op on a fresh database that never had video support.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'product_images' AND column_name = 'media_type') THEN
+    DELETE FROM product_images WHERE media_type = 'video';
+  END IF;
+END $$;
 ALTER TABLE product_images DROP CONSTRAINT IF EXISTS product_images_media_type_check;
-ALTER TABLE product_images ADD CONSTRAINT product_images_media_type_check
-  CHECK (media_type IN ('image', 'video'));
+ALTER TABLE product_images DROP COLUMN IF EXISTS media_type;
+
+-- Clean up any remaining image rows saved under the old local-disk storage
+-- (path starting with /uploads/) — those files no longer exist after a
+-- Render redeploy, so the URLs are permanently broken. Products will need
+-- their photos re-uploaded once, after which Cloudinary keeps them for good.
+UPDATE products SET image_url = NULL WHERE image_url LIKE '/uploads/%';
+DELETE FROM product_images WHERE url LIKE '/uploads/%';
 
 CREATE TABLE IF NOT EXISTS product_variants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

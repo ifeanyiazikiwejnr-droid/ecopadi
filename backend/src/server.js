@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
@@ -20,7 +19,8 @@ app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Product images are served directly from Cloudinary now (see
+// middleware/upload.js) — no local /uploads static route needed.
 
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'ecopadi-backend' }));
 

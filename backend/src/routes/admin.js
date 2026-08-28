@@ -1,9 +1,7 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const { pool } = require('../db');
 const { requireAdmin } = require('../middleware/auth');
-const { upload, UPLOAD_DIR, mediaTypeFor } = require('../middleware/upload');
+const { upload, uploadBufferToCloudinary, cloudinary } = require('../middleware/upload');
 
 const router = express.Router();
 router.use(requireAdmin); // every route below requires role = 'admin'
@@ -104,12 +102,12 @@ router.put('/discounts/:id', async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// --- Product images & videos ---
+// --- Product images ---
 
-// Upload one or more images/videos for a product. Field name must be "images".
-// The first PHOTO uploaded becomes the thumbnail automatically — videos are
-// never eligible, so the storefront thumbnail always stays a picture even if
-// a video is uploaded first or is the only new file in this batch.
+// Upload one or more images for a product. Field name must be "images".
+// The first image uploaded becomes the thumbnail automatically. Files are
+// pushed straight to Cloudinary (see middleware/upload.js) so they survive
+// backend redeploys.
 router.post('/products/:id/images', upload.array('images', 8), async (req, res) => {
   try {
     const { id } = req.params;
@@ -124,13 +122,12 @@ router.post('/products/:id/images', upload.array('images', 8), async (req, res) 
 
     const inserted = [];
     for (const file of req.files) {
-      const url = `/uploads/${file.filename}`;
-      const mediaType = mediaTypeFor(file);
-      const makeThumbnail = mediaType === 'image' && !thumbnailAssigned;
+      const cloudinaryResult = await uploadBufferToCloudinary(file.buffer);
+      const makeThumbnail = !thumbnailAssigned;
       if (makeThumbnail) thumbnailAssigned = true;
       const result = await pool.query(
-        `INSERT INTO product_images (product_id, url, media_type, is_thumbnail, position) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-        [id, url, mediaType, makeThumbnail, nextPosition]
+        `INSERT INTO product_images (product_id, url, external_id, is_thumbnail, position) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+        [id, cloudinaryResult.secure_url, cloudinaryResult.public_id, makeThumbnail, nextPosition]
       );
       inserted.push(result.rows[0]);
       nextPosition += 1;
@@ -149,14 +146,10 @@ router.get('/products/:id/images', async (req, res) => {
 });
 
 // Mark a specific image as the thumbnail (unsets any previous thumbnail).
-// Videos are rejected — the storefront thumbnail must always be a photo.
 router.put('/products/:id/images/:imageId/thumbnail', async (req, res) => {
   const { id, imageId } = req.params;
-  const target = await pool.query('SELECT media_type FROM product_images WHERE id = $1 AND product_id = $2', [imageId, id]);
-  if (!target.rows[0]) return res.status(404).json({ error: 'Media not found.' });
-  if (target.rows[0].media_type !== 'image') {
-    return res.status(400).json({ error: 'Only photos can be set as the thumbnail — videos can\'t be used as the storefront thumbnail.' });
-  }
+  const target = await pool.query('SELECT id FROM product_images WHERE id = $1 AND product_id = $2', [imageId, id]);
+  if (!target.rows[0]) return res.status(404).json({ error: 'Image not found.' });
   await pool.query('UPDATE product_images SET is_thumbnail = FALSE WHERE product_id = $1', [id]);
   await pool.query('UPDATE product_images SET is_thumbnail = TRUE WHERE id = $1 AND product_id = $2', [imageId, id]);
   await syncThumbnail(id);
@@ -168,21 +161,18 @@ router.delete('/products/:id/images/:imageId', async (req, res) => {
   const { id, imageId } = req.params;
   const imageResult = await pool.query('SELECT * FROM product_images WHERE id = $1 AND product_id = $2', [imageId, id]);
   const image = imageResult.rows[0];
-  if (!image) return res.status(404).json({ error: 'Media not found.' });
+  if (!image) return res.status(404).json({ error: 'Image not found.' });
 
   await pool.query('DELETE FROM product_images WHERE id = $1', [imageId]);
 
-  // Clean up the file on disk (best-effort — don't fail the request if this errors)
-  const filename = path.basename(image.url);
-  fs.unlink(path.join(UPLOAD_DIR, filename), () => {});
+  // Clean up the file on Cloudinary too (best-effort — don't fail the request if this errors)
+  if (image.external_id) {
+    cloudinary.uploader.destroy(image.external_id).catch(() => {});
+  }
 
-  // If we just deleted the thumbnail, promote the next remaining PHOTO
-  // (never a video) as the new thumbnail.
+  // If we just deleted the thumbnail, promote the next remaining image
   if (image.is_thumbnail) {
-    const remaining = await pool.query(
-      `SELECT id FROM product_images WHERE product_id = $1 AND media_type = 'image' ORDER BY position LIMIT 1`,
-      [id]
-    );
+    const remaining = await pool.query('SELECT id FROM product_images WHERE product_id = $1 ORDER BY position LIMIT 1', [id]);
     if (remaining.rows[0]) {
       await pool.query('UPDATE product_images SET is_thumbnail = TRUE WHERE id = $1', [remaining.rows[0].id]);
     }
