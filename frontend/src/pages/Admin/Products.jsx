@@ -161,7 +161,7 @@ export default function AdminProducts() {
                   {(!p.availability || p.availability === 'in_stock') && <span className="badge badge-instock">In Stock</span>}
                 </td>
                 <td>
-                  <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => setImageManagerProduct(p)}>Media</button>{' '}
+                  <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => setImageManagerProduct(p)}>Images</button>{' '}
                   <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => setVariantManagerProduct(p)}>Variants</button>{' '}
                   <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => startEdit(p)}>Edit</button>{' '}
                   <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5, color: 'var(--pepper)' }} onClick={() => handleDelete(p.id)}>Delete</button>

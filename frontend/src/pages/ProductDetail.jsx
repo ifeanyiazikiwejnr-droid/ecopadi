@@ -20,14 +20,8 @@ export default function ProductDetail() {
     api.getProduct(slug).then((p) => {
       setProduct(p);
       setVariant(p.variants?.[0] || null);
-      // Always prefer a photo for the initial view — the thumbnail if set,
-      // otherwise any photo in the gallery, and only a video as a last
-      // resort if the product's media is entirely video.
-      const thumb = p.images?.find((img) => img.is_thumbnail)
-        || p.images?.find((img) => img.media_type === 'image')
-        || p.images?.[0]
-        || null;
-      setActiveImage(thumb);
+      const thumb = p.images?.find((img) => img.is_thumbnail) || p.images?.[0];
+      setActiveImage(thumb || null);
     }).catch(() => setProduct(null));
   }
 
@@ -66,11 +60,7 @@ export default function ProductDetail() {
             <div className="pdp-image">
               {product.is_placeholder && <span className="badge badge-placeholder" style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>Sample product — replace with real listing</span>}
               {activeImage ? (
-                activeImage.media_type === 'video' ? (
-                  <video key={activeImage.id} src={resolveImageUrl(activeImage.url)} controls playsInline />
-                ) : (
-                  <img src={resolveImageUrl(activeImage.url)} alt={product.name} />
-                )
+                <img src={resolveImageUrl(activeImage.url)} alt={product.name} />
               ) : (
                 <span className="pdp-emoji">🛒</span>
               )}
@@ -82,16 +72,9 @@ export default function ProductDetail() {
                     key={img.id}
                     className={`pdp-thumb ${activeImage?.id === img.id ? 'active' : ''}`}
                     onClick={() => setActiveImage(img)}
-                    aria-label={img.media_type === 'video' ? 'Play video' : 'View image'}
+                    aria-label="View image"
                   >
-                    {img.media_type === 'video' ? (
-                      <>
-                        <video src={resolveImageUrl(img.url)} muted playsInline />
-                        <span className="pdp-thumb-play">▶</span>
-                      </>
-                    ) : (
-                      <img src={resolveImageUrl(img.url)} alt="" />
-                    )}
+                    <img src={resolveImageUrl(img.url)} alt="" />
                   </button>
                 ))}
               </div>

@@ -48,7 +48,7 @@ export default function ProductImageManager({ product, onClose, onChanged }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h3>Media — {product.name}</h3>
+          <h3>Images — {product.name}</h3>
           <button onClick={onClose} aria-label="Close">✕</button>
         </div>
 
@@ -56,30 +56,25 @@ export default function ProductImageManager({ product, onClose, onChanged }) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             multiple
             onChange={handleFiles}
             hidden
           />
-          <span>{uploading ? 'Uploading…' : '📷 Click to upload photos or short videos (images up to 25MB, video too)'}</span>
+          <span>{uploading ? 'Uploading…' : '📷 Click to upload images (JPG, PNG, WEBP — up to 8MB each)'}</span>
         </label>
         {error && <p style={{ color: 'var(--pepper)', marginTop: 10 }}>{error}</p>}
 
         {images.length === 0 ? (
-          <p className="muted" style={{ marginTop: 20 }}>No media yet. Upload a photo to get started — the first photo you add becomes the thumbnail automatically. Videos can be added too, but only photos can be the thumbnail.</p>
+          <p className="muted" style={{ marginTop: 20 }}>No images yet. Upload one to get started — the first image you add becomes the thumbnail automatically.</p>
         ) : (
           <div className="image-grid">
             {images.map((img) => (
               <div className={`image-tile ${img.is_thumbnail ? 'is-thumb' : ''}`} key={img.id}>
-                {img.media_type === 'video' ? (
-                  <video src={resolveImageUrl(img.url)} muted playsInline />
-                ) : (
-                  <img src={resolveImageUrl(img.url)} alt="" />
-                )}
-                {img.media_type === 'video' && <span className="video-badge">▶ Video</span>}
+                <img src={resolveImageUrl(img.url)} alt="" />
                 {img.is_thumbnail && <span className="thumb-badge">Thumbnail</span>}
                 <div className="image-tile-actions">
-                  {img.media_type === 'image' && !img.is_thumbnail && (
+                  {!img.is_thumbnail && (
                     <button onClick={() => handleSetThumbnail(img.id)}>Set as thumbnail</button>
                   )}
                   <button className="danger" onClick={() => handleDelete(img.id)}>Delete</button>
