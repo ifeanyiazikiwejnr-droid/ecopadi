@@ -5,6 +5,7 @@ import { formatPence } from '../../format';
 import { resolveImageUrl } from '../../imageUrl';
 import ProductImageManager from '../../components/ProductImageManager';
 import ProductVariantManager from '../../components/ProductVariantManager';
+import ProductEditModal from '../../components/ProductEditModal';
 
 const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty'];
 const AVAILABILITY_OPTIONS = [
@@ -18,11 +19,11 @@ export default function AdminProducts() {
   const { token } = useAuth();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [imageManagerProduct, setImageManagerProduct] = useState(null);
   const [variantManagerProduct, setVariantManagerProduct] = useState(null);
+  const [editProduct, setEditProduct] = useState(null);
   const [search, setSearch] = useState('');
 
   function load() {
@@ -34,38 +35,16 @@ export default function AdminProducts() {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   }
 
-  function startEdit(p) {
-    setEditingId(p.id);
-    setForm({
-      sku: p.sku, name: p.name, slug: p.slug, category: p.category,
-      description: p.description || '', pricePence: p.price_pence, stockQty: p.stock_qty,
-      availability: p.availability || 'in_stock', availabilityNote: p.availability_note || '',
-    });
-  }
-
-  function resetForm() {
-    setEditingId(null);
-    setForm(EMPTY_FORM);
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      if (editingId) {
-        await api.adminUpdateProduct(editingId, {
-          name: form.name, category: form.category, description: form.description,
-          pricePence: Number(form.pricePence), imageUrl: null, stockQty: Number(form.stockQty),
-          availability: form.availability, availabilityNote: form.availabilityNote,
-        }, token);
-      } else {
-        await api.adminCreateProduct({
-          sku: form.sku, name: form.name, slug: form.slug || slugify(form.name), category: form.category,
-          description: form.description, pricePence: Number(form.pricePence), stockQty: Number(form.stockQty),
-          availability: form.availability, availabilityNote: form.availabilityNote,
-        }, token);
-      }
-      resetForm();
+      await api.adminCreateProduct({
+        sku: form.sku, name: form.name, slug: form.slug || slugify(form.name), category: form.category,
+        description: form.description, pricePence: Number(form.pricePence), stockQty: Number(form.stockQty),
+        availability: form.availability, availabilityNote: form.availabilityNote,
+      }, token);
+      setForm(EMPTY_FORM);
       load();
     } catch (err) {
       setError(err.message);
@@ -93,9 +72,9 @@ export default function AdminProducts() {
   return (
     <div className="admin-panel">
       <form className="checkout-form admin-form" onSubmit={handleSubmit}>
-        <h3>{editingId ? 'Edit Product' : 'Add Product'}</h3>
+        <h3>Add Product</h3>
         <div className="form-row">
-          <input placeholder="SKU" required disabled={!!editingId} value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />
+          <input placeholder="SKU" required value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />
           <input placeholder="Name" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         </div>
         <div className="form-row">
@@ -124,10 +103,7 @@ export default function AdminProducts() {
         )}
 
         {error && <p style={{ color: 'var(--pepper)' }}>{error}</p>}
-        <div className="form-row">
-          <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : editingId ? 'Update Product' : 'Add Product'}</button>
-          {editingId && <button type="button" className="btn btn-ghost" onClick={resetForm}>Cancel</button>}
-        </div>
+        <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Add Product'}</button>
       </form>
 
       <div className="admin-table">
@@ -163,7 +139,7 @@ export default function AdminProducts() {
                 <td>
                   <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => setImageManagerProduct(p)}>Images</button>{' '}
                   <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => setVariantManagerProduct(p)}>Variants</button>{' '}
-                  <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => startEdit(p)}>Edit</button>{' '}
+                  <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5 }} onClick={() => setEditProduct(p)}>Edit</button>{' '}
                   <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 12.5, color: 'var(--pepper)' }} onClick={() => handleDelete(p.id)}>Delete</button>
                 </td>
               </tr>
@@ -187,6 +163,14 @@ export default function AdminProducts() {
         <ProductVariantManager
           product={variantManagerProduct}
           onClose={() => setVariantManagerProduct(null)}
+          onChanged={load}
+        />
+      )}
+
+      {editProduct && (
+        <ProductEditModal
+          product={editProduct}
+          onClose={() => setEditProduct(null)}
           onChanged={load}
         />
       )}
