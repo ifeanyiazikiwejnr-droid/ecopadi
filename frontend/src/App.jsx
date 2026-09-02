@@ -20,6 +20,7 @@ import Legal from './pages/Legal';
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminProducts from './pages/Admin/Products';
 import AdminOrders from './pages/Admin/Orders';
+import AdminPreorders from './pages/Admin/Preorders';
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
             <Route index element={<AdminProducts />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="preorders" element={<AdminPreorders />} />
           </Route>
           <Route path="*" element={<div className="wrap section"><h2>Page not found</h2></div>} />
         </Routes>

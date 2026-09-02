@@ -56,6 +56,7 @@ export const api = {
   adminUpdateProduct: (id, payload, token) => request(`/admin/products/${id}`, { method: 'PUT', body: payload, token }),
   adminDeleteProduct: (id, token) => request(`/admin/products/${id}`, { method: 'DELETE', token }),
   adminOrders: (token) => request('/admin/orders', { token }),
+  adminPreorders: (token) => request('/admin/preorders', { token }),
   adminUpdateOrderStatus: (id, status, token) => request(`/admin/orders/${id}/status`, { method: 'PUT', body: { status }, token }),
 
   // Product images — separate from `request()` because file uploads use

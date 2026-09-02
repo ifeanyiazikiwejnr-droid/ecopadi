@@ -207,6 +207,56 @@ router.delete('/products/:id/variants/:variantId', async (req, res) => {
   res.json({ deleted: true });
 });
 
+// --- Preorder fulfilment report ---
+// For every product currently marked "preorder", shows the total quantity
+// ordered so far and exactly who ordered it (with delivery address), so
+// once stock arrives you know how many units you need and who to ship them to.
+router.get('/preorders', async (req, res) => {
+  const result = await pool.query(`
+    SELECT
+      p.id AS product_id, p.name AS product_name, p.sku,
+      oi.id AS order_item_id, oi.quantity, oi.variant_label,
+      o.order_number, o.status, o.created_at,
+      o.guest_name, o.guest_email, o.delivery_address, o.delivery_country,
+      u.full_name AS user_name, u.email AS user_email
+    FROM order_items oi
+    JOIN products p ON p.id = oi.product_id
+    JOIN orders o ON o.id = oi.order_id
+    LEFT JOIN users u ON u.id = o.user_id
+    WHERE p.availability = 'preorder'
+      AND o.status NOT IN ('cancelled', 'refunded')
+    ORDER BY p.name, o.created_at
+  `);
+
+  const byProduct = new Map();
+  for (const row of result.rows) {
+    if (!byProduct.has(row.product_id)) {
+      byProduct.set(row.product_id, {
+        productId: row.product_id,
+        productName: row.product_name,
+        sku: row.sku,
+        totalQuantity: 0,
+        orders: [],
+      });
+    }
+    const entry = byProduct.get(row.product_id);
+    entry.totalQuantity += row.quantity;
+    entry.orders.push({
+      orderNumber: row.order_number,
+      status: row.status,
+      orderDate: row.created_at,
+      quantity: row.quantity,
+      variantLabel: row.variant_label,
+      customerName: row.user_name || row.guest_name,
+      customerEmail: row.user_email || row.guest_email,
+      address: row.delivery_address,
+      deliveryCountry: row.delivery_country,
+    });
+  }
+
+  res.json(Array.from(byProduct.values()));
+});
+
 // --- Customers (read-only list) ---
 router.get('/customers', async (req, res) => {
   const result = await pool.query(

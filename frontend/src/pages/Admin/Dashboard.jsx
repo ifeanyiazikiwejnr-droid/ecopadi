@@ -33,6 +33,7 @@ export default function Dashboard() {
         <div className="admin-tabs">
           <NavLink to="/admin/products" end>Products</NavLink>
           <NavLink to="/admin/orders">Orders</NavLink>
+          <NavLink to="/admin/preorders">Preorders</NavLink>
         </div>
 
         <Outlet />
