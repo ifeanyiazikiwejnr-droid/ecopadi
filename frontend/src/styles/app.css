@@ -233,8 +233,14 @@
 @media (max-width:920px){ .checkout-grid{ grid-template-columns:1fr; } .order-summary{ position:static; } }
 
 /* ================= Account ================= */
-.account-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.account-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; }
+@media (max-width:900px){ .account-grid{ grid-template-columns: 1fr 1fr; } }
 @media (max-width:700px){ .account-grid{ grid-template-columns:1fr; } }
+
+.reward-icon{ font-size:16px; margin-right:4px; }
+.reward-balance{ font-family: var(--serif); font-size:34px; font-weight:700; color: var(--gold); line-height:1.1; margin-bottom:12px; }
+.reward-progress-track{ height:8px; border-radius:999px; background: rgba(221,138,46,0.15); overflow:hidden; }
+.reward-progress-fill{ height:100%; background: var(--gold); border-radius:999px; transition: width .3s ease; }
 .order-list{ display:flex; flex-direction:column; gap:12px; }
 .order-row{ display:grid; grid-template-columns: 1fr auto auto; gap:16px; align-items:center; background: var(--paper); padding:18px 20px; border-radius:14px; border:1px solid rgba(43,42,38,0.08); }
 .status-pill{ padding:5px 12px; border-radius:999px; font-size:12px; font-weight:800; text-transform:capitalize; background: rgba(19,79,35,0.1); color: var(--leaf); justify-self:start; }

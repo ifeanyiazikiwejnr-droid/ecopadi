@@ -257,6 +257,27 @@ router.get('/preorders', async (req, res) => {
   res.json(Array.from(byProduct.values()));
 });
 
+// --- Reward points settings (admin-configurable rules) ---
+router.get('/reward-settings', async (req, res) => {
+  const result = await pool.query('SELECT * FROM reward_settings WHERE id = 1');
+  res.json(result.rows[0]);
+});
+
+router.put('/reward-settings', async (req, res) => {
+  const { minItemPricePence, bracketPence, pointsPerBracketPence, redemptionThresholdPence } = req.body;
+  for (const [label, value] of Object.entries({ minItemPricePence, bracketPence, pointsPerBracketPence, redemptionThresholdPence })) {
+    if (!Number.isFinite(Number(value)) || Number(value) < 0) {
+      return res.status(400).json({ error: `${label} must be a positive number.` });
+    }
+  }
+  const result = await pool.query(
+    `UPDATE reward_settings SET min_item_price_pence=$1, bracket_pence=$2, points_per_bracket_pence=$3, redemption_threshold_pence=$4
+     WHERE id = 1 RETURNING *`,
+    [minItemPricePence, bracketPence, pointsPerBracketPence, redemptionThresholdPence]
+  );
+  res.json(result.rows[0]);
+});
+
 // --- Customers (read-only list) ---
 router.get('/customers', async (req, res) => {
   const result = await pool.query(

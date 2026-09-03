@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -18,8 +18,12 @@ export default function Checkout() {
   const [discountCode, setDiscountCode] = useState('');
   const [discount, setDiscount] = useState(null);
   const [discountError, setDiscountError] = useState('');
+  const [redeemPoints, setRedeemPoints] = useState(false);
+  const [rewardSettings, setRewardSettings] = useState(null);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => { api.rewardSettings().then(setRewardSettings).catch(() => {}); }, []);
 
   async function applyDiscount() {
     setDiscountError('');
@@ -38,7 +42,17 @@ export default function Checkout() {
   const baseDelivery = isIreland ? 799 : 499;
   const freeDelivery = isVip && subtotalPence - discountPence >= 5000;
   const deliveryFeePence = freeDelivery ? 0 : baseDelivery;
-  const totalPence = Math.max(0, subtotalPence - discountPence) + deliveryFeePence;
+
+  // How much of the customer's reward balance is actually redeemable right
+  // now — mirrors the backend's logic exactly so this preview never over-promises.
+  const pointsBalance = user?.reward_points || 0;
+  const redemptionThreshold = rewardSettings?.redemption_threshold_pence || 100;
+  const redeemableUnits = Math.floor(pointsBalance / redemptionThreshold);
+  const maxPointsDiscountPence = Math.min(redeemableUnits * redemptionThreshold, Math.max(0, subtotalPence - discountPence));
+  const canRedeemPoints = user && maxPointsDiscountPence > 0;
+  const pointsDiscountPence = redeemPoints && canRedeemPoints ? maxPointsDiscountPence : 0;
+
+  const totalPence = Math.max(0, subtotalPence - discountPence - pointsDiscountPence) + deliveryFeePence;
 
   async function handlePlaceOrder(e) {
     e.preventDefault();
@@ -49,6 +63,7 @@ export default function Checkout() {
       const payload = {
         items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
         discountCode: discount?.code,
+        redeemPoints: redeemPoints && canRedeemPoints,
         deliveryCountry,
         address,
         paymentMethod,
@@ -97,7 +112,7 @@ export default function Checkout() {
             <fieldset>
               <legend>Contact details</legend>
               <p className="muted" style={{ marginBottom: 10, fontSize: 13.5 }}>
-                Checking out as a guest. <Link to="/login">Log in</Link> if you have a VIP account for free delivery.
+                Checking out as a guest. <Link to="/login">Log in</Link> if you have a VIP account for free delivery and reward points.
               </p>
               <input placeholder="Full name" required value={guestName} onChange={(e) => setGuestName(e.target.value)} />
               <input type="email" placeholder="Email address" required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} />
@@ -132,6 +147,22 @@ export default function Checkout() {
             {discountError && <p style={{ color: 'var(--pepper)', fontSize: 13.5 }}>{discountError}</p>}
           </fieldset>
 
+          {user && (
+            <fieldset>
+              <legend>Reward points</legend>
+              {canRedeemPoints ? (
+                <label className="checkbox-row">
+                  <input type="checkbox" checked={redeemPoints} onChange={(e) => setRedeemPoints(e.target.checked)} />
+                  🎁 Redeem {formatPence(maxPointsDiscountPence)} of your {formatPence(pointsBalance)} reward balance on this order
+                </label>
+              ) : (
+                <p className="muted" style={{ fontSize: 13.5 }}>
+                  🎁 You have {formatPence(pointsBalance)} in reward points — redeemable once you reach {formatPence(redemptionThreshold)}.
+                </p>
+              )}
+            </fieldset>
+          )}
+
           <fieldset>
             <legend>Payment method</legend>
             <div className="payment-options">
@@ -165,6 +196,7 @@ export default function Checkout() {
           <hr />
           <div className="summary-line"><span>Subtotal</span><strong>{formatPence(subtotalPence)}</strong></div>
           {discountPence > 0 && <div className="summary-line"><span>Discount</span><strong>−{formatPence(discountPence)}</strong></div>}
+          {pointsDiscountPence > 0 && <div className="summary-line"><span>🎁 Reward points</span><strong>−{formatPence(pointsDiscountPence)}</strong></div>}
           <div className="summary-line"><span>Delivery</span><strong>{freeDelivery ? 'Free (VIP)' : formatPence(deliveryFeePence)}</strong></div>
           <hr />
           <div className="summary-line total"><span>Total</span><strong>{formatPence(totalPence)}</strong></div>

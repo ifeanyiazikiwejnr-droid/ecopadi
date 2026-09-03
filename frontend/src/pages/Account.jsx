@@ -7,13 +7,20 @@ import { formatPence } from '../format';
 export default function Account() {
   const { user, token, loading, joinVip } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [rewardSettings, setRewardSettings] = useState(null);
 
   useEffect(() => {
     if (token) api.myOrders(token).then(setOrders).catch(() => {});
+    api.rewardSettings().then(setRewardSettings).catch(() => {});
   }, [token]);
 
   if (loading) return <div className="wrap section"><p className="muted">Loading…</p></div>;
   if (!user) return <Navigate to="/login" replace />;
+
+  const threshold = rewardSettings?.redemption_threshold_pence || 100;
+  const balance = user.reward_points || 0;
+  const progressPct = Math.min(100, Math.round((balance / threshold) * 100));
+  const canRedeem = balance >= threshold;
 
   return (
     <section className="section">
@@ -29,7 +36,7 @@ export default function Account() {
             {user.is_vip ? (
               <>
                 <span className="badge badge-vip">VIP Member</span>
-                <p className="muted" style={{ marginTop: 12 }}>Free delivery on orders £50+. Reward points: <strong>{user.reward_points}</strong></p>
+                <p className="muted" style={{ marginTop: 12 }}>Free delivery on orders £50+.</p>
               </>
             ) : (
               <>
@@ -38,6 +45,22 @@ export default function Account() {
               </>
             )}
           </div>
+
+          <div className="card reward-card" style={{ padding: 26 }}>
+            <h3 style={{ fontSize: 18, marginBottom: 10 }}>
+              <span className="reward-icon" role="img" aria-label="Reward points">🎁</span> Reward Points
+            </h3>
+            <div className="reward-balance">{formatPence(balance)}</div>
+            <div className="reward-progress-track">
+              <div className="reward-progress-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <p className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+              {canRedeem
+                ? `Ready to redeem — apply this at checkout for money off your next order.`
+                : `${formatPence(threshold - balance)} more to reach your first ${formatPence(threshold)} discount.`}
+            </p>
+          </div>
+
           <div className="card" style={{ padding: 26 }}>
             <h3 style={{ fontSize: 18, marginBottom: 10 }}>Account Details</h3>
             <p className="muted">{user.email}</p>

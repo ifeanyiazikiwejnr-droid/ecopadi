@@ -81,6 +81,22 @@ END $$;
 ALTER TABLE product_images DROP CONSTRAINT IF EXISTS product_images_media_type_check;
 ALTER TABLE product_images DROP COLUMN IF EXISTS media_type;
 
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS points_discount_pence INTEGER NOT NULL DEFAULT 0;
+
+-- Reward points rules — a single configurable row, editable from the admin
+-- dashboard, instead of being hardcoded. Defaults match: products of £50+
+-- each earn 5p in reward value per £50, redeemable once £1 (100p) has
+-- accumulated.
+CREATE TABLE IF NOT EXISTS reward_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  min_item_price_pence INTEGER NOT NULL DEFAULT 5000,
+  bracket_pence INTEGER NOT NULL DEFAULT 5000,
+  points_per_bracket_pence INTEGER NOT NULL DEFAULT 5,
+  redemption_threshold_pence INTEGER NOT NULL DEFAULT 100,
+  CONSTRAINT reward_settings_single_row CHECK (id = 1)
+);
+INSERT INTO reward_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
 -- Clean up any remaining image rows saved under the old local-disk storage
 -- (path starting with /uploads/) — those files no longer exist after a
 -- Render redeploy, so the URLs are permanently broken. Products will need
@@ -131,6 +147,7 @@ CREATE TABLE IF NOT EXISTS orders (
   subtotal_pence INTEGER NOT NULL,
   discount_pence INTEGER NOT NULL DEFAULT 0,
   discount_code TEXT,
+  points_discount_pence INTEGER NOT NULL DEFAULT 0,  -- discount from redeeming reward points
   delivery_fee_pence INTEGER NOT NULL DEFAULT 0,
   total_pence INTEGER NOT NULL,
   delivery_address JSONB NOT NULL,

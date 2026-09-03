@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
           <div className="footer-col">
             <h4>Get In Touch</h4>
-            <p>172 St. Paul's Road, Birmingham</p>
+            <p>Birmingham, United Kingdom</p>
             <p>+44 (0)7901 555647</p>
             <a href="mailto:ecopadilimiteduk@gmail.com">ecopadilimiteduk@gmail.com</a>
             <a href="#" target="_blank" rel="noreferrer">Facebook: Ecopadi UK</a>

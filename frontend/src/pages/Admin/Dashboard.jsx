@@ -34,6 +34,7 @@ export default function Dashboard() {
           <NavLink to="/admin/products" end>Products</NavLink>
           <NavLink to="/admin/orders">Orders</NavLink>
           <NavLink to="/admin/preorders">Preorders</NavLink>
+          <NavLink to="/admin/settings">Settings</NavLink>
         </div>
 
         <Outlet />

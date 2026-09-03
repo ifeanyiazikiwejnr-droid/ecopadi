@@ -29,7 +29,7 @@ export default function VIP() {
           <details><summary>Why should I sign up as a VIP customer?</summary><p>We refer to our registered customers as VIP because they are special and undoubtedly that's who they are. Creating your VIP account is completely free.</p></details>
           <details><summary>Is it really free to register?</summary><p>Yes, it is completely free to register — no hidden sign-up fees.</p></details>
           <details><summary>Do I have to make a purchase, or is there a minimum order?</summary><p>No, not at all. When you sign up as a VIP member, there is no minimum order requirement, and you are not obligated to make any purchase.</p></details>
-          <details><summary>How do grocery reward points work?</summary><p>Every time you shop any grocery product, you earn points redeemable for a discount.</p></details>
+          <details><summary>How do grocery reward points work?</summary><p>Products worth £50 or more each earn reward points — 5p in reward value for every £50 that item is worth. Points build up in your account and become redeemable for money off once you've accumulated £1.</p></details>
         </div>
       </div>
     </section>

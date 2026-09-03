@@ -10,6 +10,7 @@ const checkoutRoutes = require('./routes/checkout');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
+const rewardSettingsRoutes = require('./routes/rewardSettings');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/checkout', checkoutRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reward-settings', rewardSettingsRoutes);
 
 app.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 
