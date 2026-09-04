@@ -25,8 +25,8 @@ export default function AdminSettings() {
       await api.adminUpdateRewardSettings({
         minItemPricePence: Math.round(Number(form.minItemPricePence) * 100),
         bracketPence: Math.round(Number(form.bracketPence) * 100),
-        pointsPerBracketPence: Math.round(Number(form.pointsPerBracketPence) * 1000),
-        redemptionThresholdPence: Math.round(Number(form.redemptionThresholdPence) * 1000),
+        pointsPerBracketPence: Math.round(Number(form.pointsPerBracketPence) * 100),
+        redemptionThresholdPence: Math.round(Number(form.redemptionThresholdPence) * 100),
       }, token);
       setSaved(true);
     } catch (err) {

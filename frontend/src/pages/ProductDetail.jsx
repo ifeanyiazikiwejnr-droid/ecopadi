@@ -92,6 +92,23 @@ export default function ProductDetail() {
             {product.availability_note && (product.availability === 'out_of_stock' || product.availability === 'preorder') && (
               <p className="availability-note">{product.availability_note}</p>
             )}
+
+            {product.availability === 'preorder' && (
+              <div className="preorder-info-panel">
+                <h4>How Preorder Works</h4>
+                <p><strong>Minimum order: 10kg.</strong> Preorder items are sourced in bulk, so orders must total 10kg or more.</p>
+                <p>
+                  You don't need 10kg of this one item — mix and match with any of our other preorder items to reach
+                  the minimum together. For example: egusi (melon seed), ogbono, goat meat, catfish, snail, and more.
+                </p>
+                <p>
+                  <strong>Choose your protein form:</strong> for protein items, order them however you prefer —
+                  fresh frozen or smoked/dried. Select your preference from the options on this page where available,
+                  or let us know in your order.
+                </p>
+              </div>
+            )}
+
             <p className="muted" style={{ margin: '18px 0', lineHeight: 1.7 }}>{product.description}</p>
 
             {product.variants?.length > 0 && (

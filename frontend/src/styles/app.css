@@ -158,6 +158,17 @@
 .pdp-emoji{ font-size:96px; }
 .pdp-price{ font-family: var(--serif); font-size:30px; font-weight:700; color: var(--pantry); margin:12px 0; }
 .availability-note{ font-size:14px; color: var(--charcoal-soft); font-style:italic; margin-bottom:10px; }
+
+.preorder-info-panel{
+  background: rgba(221,138,46,0.08); border: 1.5px solid rgba(221,138,46,0.3);
+  border-radius: 14px; padding: 20px 22px; margin: 14px 0 20px;
+}
+.preorder-info-panel h4{
+  font-family: var(--serif); font-size: 16px; color: var(--pantry); margin-bottom: 10px;
+}
+.preorder-info-panel p{ font-size: 14px; color: var(--charcoal-soft); line-height: 1.65; margin-bottom: 10px; }
+.preorder-info-panel p:last-child{ margin-bottom: 0; }
+.preorder-info-panel strong{ color: var(--charcoal); }
 .stars{ color: var(--gold); font-size:14px; margin: 4px 0; }
 .stars span{ color: var(--charcoal-soft); font-weight:600; }
 .variant-picker{ margin: 18px 0; }
