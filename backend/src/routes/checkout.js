@@ -162,14 +162,14 @@ router.post('/', optionalAuth, async (req, res) => {
       );
     }
 
-    // Reward points earned on THIS order — only lines individually worth at
-    // least min_item_price_pence qualify, and only whole brackets count.
+    // Reward points earned on THIS order — evaluated against the whole
+    // order subtotal, not per individual product line. The order must be
+    // worth at least min_item_price_pence in total to earn anything, and
+    // only whole brackets count.
     if (req.user) {
       let earnedPence = 0;
-      for (const li of lineItems) {
-        if (li.lineTotal >= rewardSettings.min_item_price_pence) {
-          earnedPence += Math.floor(li.lineTotal / rewardSettings.bracket_pence) * rewardSettings.points_per_bracket_pence;
-        }
+      if (subtotalPence >= rewardSettings.min_item_price_pence) {
+        earnedPence = Math.floor(subtotalPence / rewardSettings.bracket_pence) * rewardSettings.points_per_bracket_pence;
       }
       if (earnedPence > 0) {
         await client.query('UPDATE users SET reward_points = reward_points + $1 WHERE id = $2', [earnedPence, req.user.id]);

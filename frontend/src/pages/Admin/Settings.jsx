@@ -45,10 +45,10 @@ export default function AdminSettings() {
         Controls how customers earn and redeem reward points storewide. Changes apply to orders placed after saving.
       </p>
       <form className="checkout-form" onSubmit={handleSubmit}>
-        <label className="field-label">Minimum price per item to earn anything (£)</label>
+        <label className="field-label">Minimum order subtotal to earn anything (£)</label>
         <input type="number" step="0.01" min="0" value={form.minItemPricePence} onChange={(e) => setForm((f) => ({ ...f, minItemPricePence: e.target.value }))} />
 
-        <label className="field-label">Bracket size — earn points per this much spent on a qualifying item (£)</label>
+        <label className="field-label">Bracket size — earn points per this much spent on a qualifying order (£)</label>
         <input type="number" step="0.01" min="0.01" value={form.bracketPence} onChange={(e) => setForm((f) => ({ ...f, bracketPence: e.target.value }))} />
 
         <label className="field-label">Points earned per bracket (£)</label>
@@ -58,7 +58,7 @@ export default function AdminSettings() {
         <input type="number" step="0.01" min="0.01" value={form.redemptionThresholdPence} onChange={(e) => setForm((f) => ({ ...f, redemptionThresholdPence: e.target.value }))} />
 
         <p className="muted" style={{ fontSize: 13, marginTop: 14 }}>
-          With these numbers: a product line worth £{form.minItemPricePence || 0}+ earns £{form.pointsPerBracketPence || 0}
+          With these numbers: an order worth £{form.minItemPricePence || 0}+ in total earns £{form.pointsPerBracketPence || 0}
           {' '}for every £{form.bracketPence || 0} it's worth. A customer can redeem once they've built up £{form.redemptionThresholdPence || 0}.
         </p>
 
