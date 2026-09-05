@@ -135,7 +135,7 @@
   position:relative; height:200px; background: linear-gradient(135deg, rgba(19,79,35,0.06), rgba(200,155,60,0.08));
   overflow:hidden;
 }
-.product-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.product-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
 .product-thumb .badge{ position:absolute; top:12px; left:12px; box-shadow: 0 4px 10px rgba(0,0,0,0.18); }
 .product-thumb .badge-outofstock{ background: var(--pepper); color: var(--cream); }
 .product-thumb .badge-preorder{ background: var(--gold); color: var(--pantry); }
@@ -348,13 +348,15 @@
 @media (max-width:520px){ .footer-grid{ grid-template-columns: 1fr; } }
 
 /* ================= Product gallery (customer-facing) ================= */
-.pdp-image img, .pdp-image video{ width:100%; height:100%; object-fit:cover; border-radius:20px; display:block; background: var(--charcoal); }
+.pdp-image img{ width:100%; height:100%; object-fit:contain; border-radius:20px; display:block; }
+.pdp-image video{ width:100%; height:100%; object-fit:cover; border-radius:20px; display:block; background: var(--charcoal); }
 .pdp-thumb-strip{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
 .pdp-thumb{
   position:relative; width:64px; height:64px; border-radius:10px; overflow:hidden; padding:0; cursor:pointer;
-  border:2px solid transparent; background:none; opacity:.7; transition: all .2s;
+  border:2px solid transparent; background: rgba(19,79,35,0.06); opacity:.7; transition: all .2s;
 }
-.pdp-thumb img, .pdp-thumb video{ width:100%; height:100%; object-fit:cover; display:block; }
+.pdp-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
+.pdp-thumb video{ width:100%; height:100%; object-fit:cover; display:block; }
 .pdp-thumb-play{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   background: rgba(0,0,0,0.28); color:#fff; font-size:16px;
@@ -367,7 +369,7 @@
   width:44px; height:44px; border-radius:8px; overflow:hidden; background: rgba(19,79,35,0.06);
   display:flex; align-items:center; justify-content:center; font-size:12px; color: var(--charcoal-soft);
 }
-.admin-thumb img{ width:100%; height:100%; object-fit:cover; }
+.admin-thumb img{ width:100%; height:100%; object-fit:contain; }
 
 /* ================= Admin: image manager modal ================= */
 .modal-overlay{
@@ -404,7 +406,8 @@
   border:2px solid transparent; background: rgba(19,79,35,0.06);
 }
 .image-tile.is-thumb{ border-color: var(--gold); }
-.image-tile img, .image-tile video{ width:100%; height:100%; object-fit:cover; display:block; }
+.image-tile img{ width:100%; height:100%; object-fit:contain; display:block; }
+.image-tile video{ width:100%; height:100%; object-fit:cover; display:block; }
 .thumb-badge{
   position:absolute; top:8px; left:8px; background: var(--gold); color: var(--pantry);
   font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em;
