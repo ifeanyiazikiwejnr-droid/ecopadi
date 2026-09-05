@@ -48,14 +48,17 @@ router.post('/products', async (req, res) => {
 });
 
 router.put('/products/:id', async (req, res) => {
-  const { name, category, description, pricePence, compareAtPricePence, imageUrl, stockQty, availability, availabilityNote } = req.body;
+  const { name, category, description, pricePence, compareAtPricePence, stockQty, availability, availabilityNote } = req.body;
   const status = VALID_AVAILABILITY.includes(availability) ? availability : 'in_stock';
+  // Deliberately does NOT touch image_url — that column is only ever set by
+  // syncThumbnail() (see the images routes below), so editing a product's
+  // name/price/etc. here can never wipe out its thumbnail.
   const result = await pool.query(
     `UPDATE products SET name=$1, category=$2, description=$3, price_pence=$4,
-       compare_at_price_pence=$5, image_url=$6, stock_qty=$7, availability=$8, availability_note=$9,
-       in_stock=$10, is_placeholder=FALSE
-     WHERE id=$11 RETURNING *`,
-    [name, category, description, pricePence, compareAtPricePence || null, imageUrl, stockQty, status, availabilityNote || null, status !== 'out_of_stock', req.params.id]
+       compare_at_price_pence=$5, stock_qty=$6, availability=$7, availability_note=$8,
+       in_stock=$9, is_placeholder=FALSE
+     WHERE id=$10 RETURNING *`,
+    [name, category, description, pricePence, compareAtPricePence || null, stockQty, status, availabilityNote || null, status !== 'out_of_stock', req.params.id]
   );
   if (!result.rows[0]) return res.status(404).json({ error: 'Product not found.' });
   res.json(result.rows[0]);

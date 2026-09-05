@@ -33,7 +33,6 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
         category: form.category,
         description: form.description,
         pricePence: Number(form.pricePence),
-        imageUrl: null,
         stockQty: Number(form.stockQty),
         availability: form.availability,
         availabilityNote: form.availabilityNote,
