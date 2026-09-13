@@ -6,53 +6,21 @@ import { resolveImageUrl } from '../../imageUrl';
 import ProductImageManager from '../../components/ProductImageManager';
 import ProductVariantManager from '../../components/ProductVariantManager';
 import ProductEditModal from '../../components/ProductEditModal';
-
-const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty'];
-const AVAILABILITY_OPTIONS = [
-  { value: 'in_stock', label: 'In Stock' },
-  { value: 'out_of_stock', label: 'Out of Stock' },
-  { value: 'preorder', label: 'Preorder' },
-];
-const EMPTY_FORM = { sku: '', name: '', slug: '', category: CATEGORIES[0], description: '', pricePence: '', stockQty: 0, availability: 'in_stock', availabilityNote: '', weightGrams: '' };
+import AddProductModal from '../../components/AddProductModal';
 
 export default function AdminProducts() {
   const { token } = useAuth();
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const [imageManagerProduct, setImageManagerProduct] = useState(null);
   const [variantManagerProduct, setVariantManagerProduct] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
 
   function load() {
     api.adminProducts().then(setProducts).catch(() => {});
   }
   useEffect(load, []);
-
-  function slugify(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setSaving(true); setError('');
-    try {
-      await api.adminCreateProduct({
-        sku: form.sku, name: form.name, slug: form.slug || slugify(form.name), category: form.category,
-        description: form.description, pricePence: Number(form.pricePence), stockQty: Number(form.stockQty),
-        availability: form.availability, availabilityNote: form.availabilityNote,
-        weightGrams: form.weightGrams ? Math.round(Number(form.weightGrams) * 1000) : null,
-      }, token);
-      setForm(EMPTY_FORM);
-      load();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function handleDelete(id) {
     if (!confirm('Delete this product? This cannot be undone.')) return;
@@ -71,47 +39,10 @@ export default function AdminProducts() {
   });
 
   return (
-    <div className="admin-panel">
-      <form className="checkout-form admin-form" onSubmit={handleSubmit}>
-        <h3>Add Product</h3>
-        <div className="form-row">
-          <input placeholder="SKU" required value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />
-          <input placeholder="Name" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-        </div>
-        <div className="form-row">
-          <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
-            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-          </select>
-          <input type="number" step="0.01" placeholder="Price (£)" required
-            value={form.pricePence ? (form.pricePence / 100).toString() : ''}
-            onChange={(e) => setForm((f) => ({ ...f, pricePence: Math.round(Number(e.target.value) * 100) }))} />
-        </div>
-        <textarea placeholder="Description" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-        <div className="form-row">
-          <input type="number" placeholder="Stock quantity" value={form.stockQty} onChange={(e) => setForm((f) => ({ ...f, stockQty: e.target.value }))} />
-          <input type="number" step="0.01" min="0" placeholder="Weight (kg)" value={form.weightGrams} onChange={(e) => setForm((f) => ({ ...f, weightGrams: e.target.value }))} />
-        </div>
-        <p className="muted" style={{ fontSize: 12.5, marginTop: -6, marginBottom: 10 }}>
-          Weight is required for preorder items — it's what determines when a customer's basket reaches the preorder minimum.
-        </p>
-
-        <label className="field-label">Availability</label>
-        <select value={form.availability} onChange={(e) => setForm((f) => ({ ...f, availability: e.target.value }))}>
-          {AVAILABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-
-        {form.availability !== 'in_stock' && (
-          <input
-            placeholder={form.availability === 'preorder' ? "Preorder note, e.g. 'Ships in 2 weeks'" : "Note, e.g. 'Back in stock Friday'"}
-            value={form.availabilityNote}
-            onChange={(e) => setForm((f) => ({ ...f, availabilityNote: e.target.value }))}
-            style={{ marginTop: 10 }}
-          />
-        )}
-
-        {error && <p style={{ color: 'var(--pepper)' }}>{error}</p>}
-        <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Add Product'}</button>
-      </form>
+    <div>
+      <div className="admin-toolbar">
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>+ Add Product</button>
+      </div>
 
       <div className="admin-table">
         <div className="admin-search-row">
@@ -162,6 +93,13 @@ export default function AdminProducts() {
           </tbody>
         </table>
       </div>
+
+      {showAddModal && (
+        <AddProductModal
+          onClose={() => setShowAddModal(false)}
+          onChanged={load}
+        />
+      )}
 
       {imageManagerProduct && (
         <ProductImageManager
