@@ -19,6 +19,7 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
     stockQty: product.stock_qty,
     availability: product.availability || 'in_stock',
     availabilityNote: product.availability_note || '',
+    weightGrams: product.weight_grams ? (product.weight_grams / 1000).toString() : '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -36,6 +37,7 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
         stockQty: Number(form.stockQty),
         availability: form.availability,
         availabilityNote: form.availabilityNote,
+        weightGrams: form.weightGrams ? Math.round(Number(form.weightGrams) * 1000) : null,
       }, token);
       onChanged?.();
       onClose();
@@ -79,6 +81,14 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
             onChange={(e) => setForm((f) => ({ ...f, stockQty: e.target.value }))}
             style={{ marginTop: 10 }}
           />
+          <input
+            type="number" step="0.01" min="0" placeholder="Weight (kg)" value={form.weightGrams}
+            onChange={(e) => setForm((f) => ({ ...f, weightGrams: e.target.value }))}
+            style={{ marginTop: 10 }}
+          />
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 6 }}>
+            Weight is required for preorder items — it's what determines when a customer's basket reaches the preorder minimum.
+          </p>
 
           <label className="field-label">Availability</label>
           <select value={form.availability} onChange={(e) => setForm((f) => ({ ...f, availability: e.target.value }))}>

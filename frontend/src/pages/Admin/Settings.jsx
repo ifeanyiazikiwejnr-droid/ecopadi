@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api';
 
-export default function AdminSettings() {
+function RewardSettingsForm() {
   const { token } = useAuth();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -68,6 +68,70 @@ export default function AdminSettings() {
           {saving ? 'Saving…' : 'Save Rules'}
         </button>
       </form>
+    </div>
+  );
+}
+
+function PreorderSettingsForm() {
+  const { token } = useAuth();
+  const [minimumKg, setMinimumKg] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    api.adminGetPreorderSettings(token).then((s) => setMinimumKg((s.minimum_weight_grams / 1000).toString())).catch(() => {});
+  }, [token]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSaving(true); setError(''); setSaved(false);
+    try {
+      await api.adminUpdatePreorderSettings({
+        minimumWeightGrams: Math.round(Number(minimumKg) * 1000),
+      }, token);
+      setSaved(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (minimumKg === null) return <p className="muted">Loading…</p>;
+
+  return (
+    <div className="admin-form" style={{ maxWidth: 520, marginTop: 24 }}>
+      <h3>Preorder Rules</h3>
+      <p className="muted" style={{ fontSize: 13.5, marginBottom: 20 }}>
+        A customer's basket can't be checked out while it contains preorder items totalling less than this weight.
+        In-stock items don't count toward this and can always be checked out freely. Each product's weight is set
+        from its Edit screen in the Products tab.
+      </p>
+      <form className="checkout-form" onSubmit={handleSubmit}>
+        <label className="field-label">Minimum combined weight of preorder items (kg)</label>
+        <input type="number" step="0.01" min="0.01" value={minimumKg} onChange={(e) => setMinimumKg(e.target.value)} />
+
+        <p className="muted" style={{ fontSize: 13, marginTop: 14 }}>
+          With this number: a basket containing any preorder item can only be checked out once those preorder
+          items together weigh at least {minimumKg || 0}kg.
+        </p>
+
+        {error && <p style={{ color: 'var(--pepper)', marginTop: 10 }}>{error}</p>}
+        {saved && <p style={{ color: 'var(--leaf)', marginTop: 10 }}>✓ Saved</p>}
+        <button className="btn btn-primary" type="submit" disabled={saving} style={{ marginTop: 14 }}>
+          {saving ? 'Saving…' : 'Save Rules'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function AdminSettings() {
+  return (
+    <div>
+      <RewardSettingsForm />
+      <PreorderSettingsForm />
     </div>
   );
 }

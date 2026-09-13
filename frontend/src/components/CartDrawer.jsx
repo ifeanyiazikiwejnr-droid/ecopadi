@@ -1,9 +1,19 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { formatPence } from '../format';
+import { api } from '../api';
+import { formatPence, formatKg } from '../format';
 
 export default function CartDrawer() {
-  const { items, isOpen, setIsOpen, updateQuantity, removeItem, subtotalPence, itemCount } = useCart();
+  const { items, isOpen, setIsOpen, updateQuantity, removeItem, subtotalPence, itemCount, hasPreorderItems, preorderWeightGrams } = useCart();
+  const [preorderSettings, setPreorderSettings] = useState(null);
+
+  useEffect(() => {
+    if (hasPreorderItems && !preorderSettings) api.preorderSettings().then(setPreorderSettings).catch(() => {});
+  }, [hasPreorderItems, preorderSettings]);
+
+  const preorderMinimumGrams = preorderSettings?.minimum_weight_grams;
+  const preorderMinimumMet = !hasPreorderItems || (preorderMinimumGrams && preorderWeightGrams >= preorderMinimumGrams);
 
   return (
     <>
@@ -39,6 +49,13 @@ export default function CartDrawer() {
               ))}
             </div>
             <div className="drawer-footer">
+              {hasPreorderItems && preorderMinimumGrams && (
+                <p className={`muted drawer-preorder-hint ${preorderMinimumMet ? 'met' : ''}`}>
+                  {preorderMinimumMet
+                    ? `✓ Preorder minimum met (${formatKg(preorderWeightGrams)}kg of ${formatKg(preorderMinimumGrams)}kg)`
+                    : `Preorder items: ${formatKg(preorderWeightGrams)}kg of ${formatKg(preorderMinimumGrams)}kg needed to check out`}
+                </p>
+              )}
               <div className="drawer-subtotal">
                 <span>Subtotal</span>
                 <strong>{formatPence(subtotalPence)}</strong>

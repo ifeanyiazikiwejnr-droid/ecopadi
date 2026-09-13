@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS products (
   stock_qty INTEGER NOT NULL DEFAULT 0,
   availability TEXT NOT NULL DEFAULT 'in_stock',  -- 'in_stock' | 'out_of_stock' | 'preorder'
   availability_note TEXT,                          -- optional admin message, e.g. "Back in stock Friday" or "Ships in 2 weeks"
+  weight_grams INTEGER,                            -- product weight, used to enforce the preorder minimum-kg rule
   is_placeholder BOOLEAN NOT NULL DEFAULT TRUE, -- flags demo/seed data so it's obvious what to replace
   nutrition JSONB,                             -- { basis: "Per 100g", items: [{ label, value }] } — shown on the product page
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -96,6 +97,18 @@ CREATE TABLE IF NOT EXISTS reward_settings (
   CONSTRAINT reward_settings_single_row CHECK (id = 1)
 );
 INSERT INTO reward_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE products ADD COLUMN IF NOT EXISTS weight_grams INTEGER;
+
+-- Preorder bulk-order rule — a single configurable row, editable from the
+-- admin dashboard. Only preorder items count toward this minimum; a cart
+-- can freely include any number of in-stock items alongside them.
+CREATE TABLE IF NOT EXISTS preorder_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  minimum_weight_grams INTEGER NOT NULL DEFAULT 10000,
+  CONSTRAINT preorder_settings_single_row CHECK (id = 1)
+);
+INSERT INTO preorder_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- Clean up any remaining image rows saved under the old local-disk storage
 -- (path starting with /uploads/) — those files no longer exist after a

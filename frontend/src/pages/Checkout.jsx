@@ -3,10 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
-import { formatPence } from '../format';
+import { formatPence, formatKg } from '../format';
 
 export default function Checkout() {
-  const { items, subtotalPence, clearCart } = useCart();
+  const { items, subtotalPence, clearCart, hasPreorderItems, preorderWeightGrams } = useCart();
   const { user, token } = useAuth();
   const navigate = useNavigate();
 
@@ -20,10 +20,14 @@ export default function Checkout() {
   const [discountError, setDiscountError] = useState('');
   const [redeemPoints, setRedeemPoints] = useState(false);
   const [rewardSettings, setRewardSettings] = useState(null);
+  const [preorderSettings, setPreorderSettings] = useState(null);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { api.rewardSettings().then(setRewardSettings).catch(() => {}); }, []);
+  useEffect(() => {
+    api.rewardSettings().then(setRewardSettings).catch(() => {});
+    api.preorderSettings().then(setPreorderSettings).catch(() => {});
+  }, []);
 
   async function applyDiscount() {
     setDiscountError('');
@@ -52,12 +56,21 @@ export default function Checkout() {
   const canRedeemPoints = user && maxPointsDiscountPence > 0;
   const pointsDiscountPence = redeemPoints && canRedeemPoints ? maxPointsDiscountPence : 0;
 
+  // Preorder bulk-order rule — only preorder items count toward this
+  // minimum; in-stock items in the same basket don't affect it at all.
+  // Mirrors the backend's check exactly so this never promises something
+  // checkout would then reject.
+  const preorderMinimumGrams = preorderSettings?.minimum_weight_grams ?? null;
+  const preorderMinimumMet = !hasPreorderItems || (preorderMinimumGrams !== null && preorderWeightGrams >= preorderMinimumGrams);
+  const preorderBlocked = hasPreorderItems && preorderMinimumGrams !== null && !preorderMinimumMet;
+
   const totalPence = Math.max(0, subtotalPence - discountPence - pointsDiscountPence) + deliveryFeePence;
 
   async function handlePlaceOrder(e) {
     e.preventDefault();
     setError('');
     if (items.length === 0) { setError('Your basket is empty.'); return; }
+    if (preorderBlocked) { setError('Add more preorder items to reach the minimum weight before checking out.'); return; }
     setPlacing(true);
     try {
       const payload = {
@@ -163,6 +176,25 @@ export default function Checkout() {
             </fieldset>
           )}
 
+          {hasPreorderItems && preorderMinimumGrams !== null && (
+            <fieldset>
+              <legend>Preorder minimum</legend>
+              <div className={`preorder-progress ${preorderMinimumMet ? 'met' : ''}`}>
+                <div className="preorder-progress-track">
+                  <div
+                    className="preorder-progress-fill"
+                    style={{ width: `${Math.min(100, Math.round((preorderWeightGrams / preorderMinimumGrams) * 100))}%` }}
+                  />
+                </div>
+                <p className="muted" style={{ fontSize: 13.5, marginTop: 8 }}>
+                  {preorderMinimumMet
+                    ? `✓ Preorder items: ${formatKg(preorderWeightGrams)}kg — minimum of ${formatKg(preorderMinimumGrams)}kg met.`
+                    : `Preorder items: ${formatKg(preorderWeightGrams)}kg of ${formatKg(preorderMinimumGrams)}kg needed. Add more preorder items to check out, or remove them to buy just your other items.`}
+                </p>
+              </div>
+            </fieldset>
+          )}
+
           <fieldset>
             <legend>Payment method</legend>
             <div className="payment-options">
@@ -180,8 +212,12 @@ export default function Checkout() {
           </fieldset>
 
           {error && <p style={{ color: 'var(--pepper)', marginBottom: 16 }}>{error}</p>}
-          <button className="btn btn-primary" type="submit" disabled={placing} style={{ width: '100%', justifyContent: 'center' }}>
-            {placing ? 'Placing order…' : `Place Order — ${formatPence(totalPence)}`}
+          <button className="btn btn-primary" type="submit" disabled={placing || preorderBlocked} style={{ width: '100%', justifyContent: 'center' }}>
+            {placing
+              ? 'Placing order…'
+              : preorderBlocked
+                ? `Add ${formatKg(preorderMinimumGrams - preorderWeightGrams)}kg more of preorder items`
+                : `Place Order — ${formatPence(totalPence)}`}
           </button>
         </form>
 

@@ -37,18 +37,18 @@ router.get('/summary', async (req, res) => {
 const VALID_AVAILABILITY = ['in_stock', 'out_of_stock', 'preorder'];
 
 router.post('/products', async (req, res) => {
-  const { sku, name, slug, category, description, pricePence, compareAtPricePence, imageUrl, stockQty, availability, availabilityNote } = req.body;
+  const { sku, name, slug, category, description, pricePence, compareAtPricePence, imageUrl, stockQty, availability, availabilityNote, weightGrams } = req.body;
   const status = VALID_AVAILABILITY.includes(availability) ? availability : 'in_stock';
   const result = await pool.query(
-    `INSERT INTO products (sku, name, slug, category, description, price_pence, compare_at_price_pence, image_url, stock_qty, is_placeholder, availability, availability_note, in_stock)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, FALSE, $10, $11, $12) RETURNING *`,
-    [sku, name, slug, category, description, pricePence, compareAtPricePence || null, imageUrl || null, stockQty || 0, status, availabilityNote || null, status !== 'out_of_stock']
+    `INSERT INTO products (sku, name, slug, category, description, price_pence, compare_at_price_pence, image_url, stock_qty, is_placeholder, availability, availability_note, in_stock, weight_grams)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, FALSE, $10, $11, $12, $13) RETURNING *`,
+    [sku, name, slug, category, description, pricePence, compareAtPricePence || null, imageUrl || null, stockQty || 0, status, availabilityNote || null, status !== 'out_of_stock', weightGrams || null]
   );
   res.json(result.rows[0]);
 });
 
 router.put('/products/:id', async (req, res) => {
-  const { name, category, description, pricePence, compareAtPricePence, stockQty, availability, availabilityNote } = req.body;
+  const { name, category, description, pricePence, compareAtPricePence, stockQty, availability, availabilityNote, weightGrams } = req.body;
   const status = VALID_AVAILABILITY.includes(availability) ? availability : 'in_stock';
   // Deliberately does NOT touch image_url — that column is only ever set by
   // syncThumbnail() (see the images routes below), so editing a product's
@@ -56,9 +56,9 @@ router.put('/products/:id', async (req, res) => {
   const result = await pool.query(
     `UPDATE products SET name=$1, category=$2, description=$3, price_pence=$4,
        compare_at_price_pence=$5, stock_qty=$6, availability=$7, availability_note=$8,
-       in_stock=$9, is_placeholder=FALSE
-     WHERE id=$10 RETURNING *`,
-    [name, category, description, pricePence, compareAtPricePence || null, stockQty, status, availabilityNote || null, status !== 'out_of_stock', req.params.id]
+       in_stock=$9, is_placeholder=FALSE, weight_grams=$10
+     WHERE id=$11 RETURNING *`,
+    [name, category, description, pricePence, compareAtPricePence || null, stockQty, status, availabilityNote || null, status !== 'out_of_stock', weightGrams || null, req.params.id]
   );
   if (!result.rows[0]) return res.status(404).json({ error: 'Product not found.' });
   res.json(result.rows[0]);
@@ -277,6 +277,24 @@ router.put('/reward-settings', async (req, res) => {
     `UPDATE reward_settings SET min_item_price_pence=$1, bracket_pence=$2, points_per_bracket_pence=$3, redemption_threshold_pence=$4
      WHERE id = 1 RETURNING *`,
     [minItemPricePence, bracketPence, pointsPerBracketPence, redemptionThresholdPence]
+  );
+  res.json(result.rows[0]);
+});
+
+// --- Preorder minimum weight (admin-configurable) ---
+router.get('/preorder-settings', async (req, res) => {
+  const result = await pool.query('SELECT * FROM preorder_settings WHERE id = 1');
+  res.json(result.rows[0]);
+});
+
+router.put('/preorder-settings', async (req, res) => {
+  const { minimumWeightGrams } = req.body;
+  if (!Number.isFinite(Number(minimumWeightGrams)) || Number(minimumWeightGrams) < 0) {
+    return res.status(400).json({ error: 'minimumWeightGrams must be a positive number.' });
+  }
+  const result = await pool.query(
+    'UPDATE preorder_settings SET minimum_weight_grams=$1 WHERE id = 1 RETURNING *',
+    [minimumWeightGrams]
   );
   res.json(result.rows[0]);
 });

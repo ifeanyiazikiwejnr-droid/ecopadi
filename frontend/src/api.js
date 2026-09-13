@@ -43,6 +43,7 @@ export const api = {
   // Checkout / orders
   checkout: (payload, token) => request('/checkout', { method: 'POST', body: payload, token }),
   rewardSettings: () => request('/reward-settings'),
+  preorderSettings: () => request('/preorder-settings'),
   myOrders: (token) => request('/orders/mine', { token }),
   orderDetail: (orderNumber, token) => request(`/orders/${orderNumber}`, { token }),
   lookupOrder: (payload) => request('/orders/lookup', { method: 'POST', body: payload }),
@@ -61,6 +62,8 @@ export const api = {
   adminUpdateOrderStatus: (id, status, token) => request(`/admin/orders/${id}/status`, { method: 'PUT', body: { status }, token }),
   adminGetRewardSettings: (token) => request('/admin/reward-settings', { token }),
   adminUpdateRewardSettings: (payload, token) => request('/admin/reward-settings', { method: 'PUT', body: payload, token }),
+  adminGetPreorderSettings: (token) => request('/admin/preorder-settings', { token }),
+  adminUpdatePreorderSettings: (payload, token) => request('/admin/preorder-settings', { method: 'PUT', body: payload, token }),
 
   // Product images — separate from `request()` because file uploads use
   // multipart/form-data, not JSON.

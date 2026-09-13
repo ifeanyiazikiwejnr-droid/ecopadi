@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCart } from '../context/CartContext';
-import { formatPence } from '../format';
+import { formatPence, formatKg } from '../format';
 import { resolveImageUrl } from '../imageUrl';
 
 export default function ProductDetail() {
@@ -15,6 +15,9 @@ export default function ProductDetail() {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '', reviewerName: '' });
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState('');
+  const [preorderSettings, setPreorderSettings] = useState(null);
+
+  useEffect(() => { api.preorderSettings().then(setPreorderSettings).catch(() => {}); }, []);
 
   function load() {
     api.getProduct(slug).then((p) => {
@@ -96,10 +99,16 @@ export default function ProductDetail() {
             {product.availability === 'preorder' && (
               <div className="preorder-info-panel">
                 <h4>How Preorder Works</h4>
-                <p><strong>Minimum order: 10kg.</strong> Preorder items are sourced in bulk, so orders must total 10kg or more.</p>
                 <p>
-                  You don't need 10kg of this one item — mix and match with any of our other preorder items to reach
-                  the minimum together. For example: egusi (melon seed), ogbono, goat meat, catfish, snail, and more.
+                  <strong>Minimum order: {preorderSettings ? formatKg(preorderSettings.minimum_weight_grams) : '10'}kg.</strong> Preorder
+                  items are sourced in bulk, so your basket's preorder items must total that much or more before you can check out.
+                </p>
+                {product.weight_grams > 0 && (
+                  <p>This item weighs <strong>{formatKg(product.weight_grams)}kg</strong> per unit.</p>
+                )}
+                <p>
+                  You don't need the full minimum from this one item — mix and match with any of our other preorder
+                  items to reach it together. For example: egusi (melon seed), ogbono, goat meat, catfish, snail, and more.
                 </p>
                 <p>
                   <strong>Choose your protein form:</strong> for protein items, order them however you prefer —

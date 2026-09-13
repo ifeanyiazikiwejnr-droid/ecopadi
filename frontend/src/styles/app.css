@@ -227,6 +227,11 @@
 .remove-btn{ background:none; border:none; cursor:pointer; font-size:14px; }
 .drawer-footer{ padding:20px 24px; border-top:1px solid rgba(43,42,38,0.1); }
 .drawer-subtotal{ display:flex; justify-content:space-between; margin-bottom:16px; font-size:16px; }
+.drawer-preorder-hint{
+  font-size:12.5px; padding:8px 12px; border-radius:10px; margin-bottom:12px;
+  background: rgba(221,138,46,0.1); text-align:center;
+}
+.drawer-preorder-hint.met{ background: rgba(19,79,35,0.1); color: var(--leaf); }
 
 /* ================= Checkout ================= */
 .checkout-grid{ display:grid; grid-template-columns: 1.4fr 1fr; gap:50px; align-items:start; }
@@ -258,6 +263,11 @@
 .reward-balance{ font-family: var(--serif); font-size:34px; font-weight:700; color: var(--gold); line-height:1.1; margin-bottom:12px; }
 .reward-progress-track{ height:8px; border-radius:999px; background: rgba(221,138,46,0.15); overflow:hidden; }
 .reward-progress-fill{ height:100%; background: var(--gold); border-radius:999px; transition: width .3s ease; }
+
+.preorder-progress-track{ height:8px; border-radius:999px; background: rgba(221,138,46,0.15); overflow:hidden; }
+.preorder-progress-fill{ height:100%; background: var(--gold); border-radius:999px; transition: width .3s ease; }
+.preorder-progress.met .preorder-progress-track{ background: rgba(19,79,35,0.12); }
+.preorder-progress.met .preorder-progress-fill{ background: var(--leaf); }
 .order-list{ display:flex; flex-direction:column; gap:12px; }
 .order-row{ display:grid; grid-template-columns: 1fr auto auto; gap:16px; align-items:center; background: var(--paper); padding:18px 20px; border-radius:14px; border:1px solid rgba(43,42,38,0.08); }
 .status-pill{ padding:5px 12px; border-radius:999px; font-size:12px; font-weight:800; text-transform:capitalize; background: rgba(19,79,35,0.1); color: var(--leaf); justify-self:start; }

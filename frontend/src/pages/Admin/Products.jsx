@@ -13,7 +13,7 @@ const AVAILABILITY_OPTIONS = [
   { value: 'out_of_stock', label: 'Out of Stock' },
   { value: 'preorder', label: 'Preorder' },
 ];
-const EMPTY_FORM = { sku: '', name: '', slug: '', category: CATEGORIES[0], description: '', pricePence: '', stockQty: 0, availability: 'in_stock', availabilityNote: '' };
+const EMPTY_FORM = { sku: '', name: '', slug: '', category: CATEGORIES[0], description: '', pricePence: '', stockQty: 0, availability: 'in_stock', availabilityNote: '', weightGrams: '' };
 
 export default function AdminProducts() {
   const { token } = useAuth();
@@ -43,6 +43,7 @@ export default function AdminProducts() {
         sku: form.sku, name: form.name, slug: form.slug || slugify(form.name), category: form.category,
         description: form.description, pricePence: Number(form.pricePence), stockQty: Number(form.stockQty),
         availability: form.availability, availabilityNote: form.availabilityNote,
+        weightGrams: form.weightGrams ? Math.round(Number(form.weightGrams) * 1000) : null,
       }, token);
       setForm(EMPTY_FORM);
       load();
@@ -86,7 +87,13 @@ export default function AdminProducts() {
             onChange={(e) => setForm((f) => ({ ...f, pricePence: Math.round(Number(e.target.value) * 100) }))} />
         </div>
         <textarea placeholder="Description" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-        <input type="number" placeholder="Stock quantity" value={form.stockQty} onChange={(e) => setForm((f) => ({ ...f, stockQty: e.target.value }))} />
+        <div className="form-row">
+          <input type="number" placeholder="Stock quantity" value={form.stockQty} onChange={(e) => setForm((f) => ({ ...f, stockQty: e.target.value }))} />
+          <input type="number" step="0.01" min="0" placeholder="Weight (kg)" value={form.weightGrams} onChange={(e) => setForm((f) => ({ ...f, weightGrams: e.target.value }))} />
+        </div>
+        <p className="muted" style={{ fontSize: 12.5, marginTop: -6, marginBottom: 10 }}>
+          Weight is required for preorder items — it's what determines when a customer's basket reaches the preorder minimum.
+        </p>
 
         <label className="field-label">Availability</label>
         <select value={form.availability} onChange={(e) => setForm((f) => ({ ...f, availability: e.target.value }))}>
@@ -118,7 +125,7 @@ export default function AdminProducts() {
           {search && <span className="muted admin-search-count">{filteredProducts.length} of {products.length}</span>}
         </div>
         <table>
-          <thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Weight</th><th>Stock</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {filteredProducts.map((p) => (
               <tr key={p.id}>
@@ -130,6 +137,11 @@ export default function AdminProducts() {
                 <td>{p.name} {p.is_placeholder && <span className="badge badge-placeholder">Sample</span>}</td>
                 <td className="muted">{p.category}</td>
                 <td>{formatPence(p.price_pence)}</td>
+                <td className="muted">
+                  {p.weight_grams ? `${(p.weight_grams / 1000).toString()}kg` : (
+                    p.availability === 'preorder' ? <span style={{ color: 'var(--pepper)' }}>Not set</span> : '—'
+                  )}
+                </td>
                 <td>{p.stock_qty}</td>
                 <td>
                   {p.availability === 'out_of_stock' && <span className="badge badge-outofstock">Out of Stock</span>}
@@ -145,7 +157,7 @@ export default function AdminProducts() {
               </tr>
             ))}
             {filteredProducts.length === 0 && (
-              <tr><td colSpan={7} className="muted" style={{ padding: '20px 12px' }}>No products match "{search}".</td></tr>
+              <tr><td colSpan={8} className="muted" style={{ padding: '20px 12px' }}>No products match "{search}".</td></tr>
             )}
           </tbody>
         </table>

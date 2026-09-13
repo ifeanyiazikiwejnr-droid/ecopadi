@@ -29,6 +29,8 @@ export function CartProvider({ children }) {
           name: product.name,
           variantLabel: variant ? `${variant.name}: ${variant.value}` : null,
           unitPricePence: product.price_pence + (variant?.price_delta_pence || 0),
+          availability: product.availability || 'in_stock',
+          weightGrams: product.weight_grams || 0,
           quantity,
         },
       ];
@@ -51,10 +53,16 @@ export function CartProvider({ children }) {
 
   const subtotalPence = items.reduce((sum, i) => sum + i.unitPricePence * i.quantity, 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const preorderItems = items.filter((i) => i.availability === 'preorder');
+  const preorderWeightGrams = preorderItems.reduce((sum, i) => sum + (i.weightGrams || 0) * i.quantity, 0);
+  const hasPreorderItems = preorderItems.length > 0;
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, updateQuantity, removeItem, clearCart, subtotalPence, itemCount, isOpen, setIsOpen }}
+      value={{
+        items, addItem, updateQuantity, removeItem, clearCart, subtotalPence, itemCount, isOpen, setIsOpen,
+        hasPreorderItems, preorderWeightGrams,
+      }}
     >
       {children}
     </CartContext.Provider>

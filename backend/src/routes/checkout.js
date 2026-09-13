@@ -82,6 +82,29 @@ router.post('/', optionalAuth, async (req, res) => {
       lineItems.push({ product, variantLabel, unitPrice, qty, lineTotal });
     }
 
+    // Preorder bulk-order rule — only items marked "preorder" count toward
+    // this minimum. Any number of in-stock items can be included freely
+    // alongside them without affecting this check.
+    const hasPreorderItems = lineItems.some((li) => li.product.availability === 'preorder');
+    if (hasPreorderItems) {
+      const preorderSettingsResult = await client.query('SELECT * FROM preorder_settings WHERE id = 1');
+      const preorderSettings = preorderSettingsResult.rows[0];
+      const preorderWeightGrams = lineItems
+        .filter((li) => li.product.availability === 'preorder')
+        .reduce((sum, li) => sum + (li.product.weight_grams || 0) * li.qty, 0);
+
+      if (preorderWeightGrams < preorderSettings.minimum_weight_grams) {
+        // Truncate (never round up) so a value that hasn't actually reached
+        // the threshold can never display as if it had — e.g. 9999g must
+        // show as 9.99kg, not round up to a misleading "10kg".
+        const formatKg = (grams) => parseFloat((Math.floor(grams / 10) / 100).toFixed(2)).toString();
+        throw {
+          status: 400,
+          message: `Preorder items must total at least ${formatKg(preorderSettings.minimum_weight_grams)}kg — your basket currently has ${formatKg(preorderWeightGrams)}kg of preorder items. Add more preorder items to reach the minimum, or remove them to check out with just your other items.`,
+        };
+      }
+    }
+
     // Discount code
     let discountPence = 0;
     let appliedCode = null;
