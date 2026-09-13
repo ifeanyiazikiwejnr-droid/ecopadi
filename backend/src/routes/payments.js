@@ -1,7 +1,8 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { pool } = require('../db');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 // Lazily initialise Stripe only if a key is configured, so the server still
 // boots for local/demo use before you've added real payment credentials.

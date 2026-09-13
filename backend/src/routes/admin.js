@@ -1,9 +1,10 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { pool } = require('../db');
 const { requireAdmin } = require('../middleware/auth');
 const { upload, uploadBufferToCloudinary, cloudinary } = require('../middleware/upload');
 
-const router = express.Router();
+const router = createAsyncRouter();
 router.use(requireAdmin); // every route below requires role = 'admin'
 
 // Keeps products.image_url (used everywhere for quick thumbnail lookups,

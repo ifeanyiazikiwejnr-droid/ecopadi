@@ -1,7 +1,8 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { pool } = require('../db');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 // POST /api/discounts/validate  { code, subtotalPence }
 router.post('/validate', async (req, res) => {

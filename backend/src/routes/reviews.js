@@ -1,8 +1,9 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { pool } = require('../db');
 const { optionalAuth } = require('../middleware/auth');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 router.post('/', optionalAuth, async (req, res) => {
   const { productId, rating, comment, reviewerName } = req.body;

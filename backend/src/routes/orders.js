@@ -1,8 +1,9 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { pool } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 // Logged-in customer's own order history
 router.get('/mine', requireAuth, async (req, res) => {

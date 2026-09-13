@@ -1,7 +1,8 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { pool } = require('../db');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 // Public and read-only — lets the storefront (checkout page, FAQ) always
 // reflect whatever rules the admin has actually configured, instead of

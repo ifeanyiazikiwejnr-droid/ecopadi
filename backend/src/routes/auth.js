@@ -1,10 +1,11 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 function signToken(user) {
   return jwt.sign(

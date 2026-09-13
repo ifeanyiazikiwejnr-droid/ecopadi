@@ -1,9 +1,10 @@
 const express = require('express');
+const createAsyncRouter = require('../middleware/asyncRouter');
 const { v4: uuidv4 } = require('uuid');
 const { pool } = require('../db');
 const { optionalAuth } = require('../middleware/auth');
 
-const router = express.Router();
+const router = createAsyncRouter();
 
 const DELIVERY_FEE_UK_PENCE = 499;
 const DELIVERY_FEE_IE_PENCE = 799;
