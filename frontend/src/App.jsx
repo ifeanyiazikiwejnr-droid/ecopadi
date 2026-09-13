@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import RequireAdmin from './components/RequireAdmin';
+import ScrollToTop from './components/ScrollToTop';
 
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -26,6 +27,7 @@ import AdminSettings from './pages/Admin/Settings';
 export default function App() {
   return (
     <>
+      <ScrollToTop />
       <Navbar />
       <CartDrawer />
       <main>
