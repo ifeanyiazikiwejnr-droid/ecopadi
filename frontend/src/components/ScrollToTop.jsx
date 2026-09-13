@@ -8,7 +8,10 @@ export default function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // The site has global CSS smooth-scrolling (for in-page anchor links),
+    // which would otherwise make this route-change reset visibly animate.
+    // "instant" overrides that just for this jump.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname]);
 
   return null;
