@@ -89,6 +89,8 @@ export const api = {
   adminGetVariants: (productId, token) => request(`/admin/products/${productId}/variants`, { token }),
   adminCreateVariant: (productId, payload, token) =>
     request(`/admin/products/${productId}/variants`, { method: 'POST', body: payload, token }),
+  adminUpdateVariant: (productId, variantId, payload, token) =>
+    request(`/admin/products/${productId}/variants/${variantId}`, { method: 'PUT', body: payload, token }),
   adminDeleteVariant: (productId, variantId, token) =>
     request(`/admin/products/${productId}/variants/${variantId}`, { method: 'DELETE', token }),
   adminDiscounts: (token) => request('/admin/discounts', { token }),

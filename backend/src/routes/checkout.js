@@ -69,18 +69,23 @@ router.post('/', optionalAuth, async (req, res) => {
 
       let unitPrice = product.price_pence;
       let variantLabel = null;
+      let unitWeightGrams = product.weight_grams || 0;
       if (item.variantId) {
         const variantResult = await client.query('SELECT * FROM product_variants WHERE id = $1', [item.variantId]);
         const variant = variantResult.rows[0];
         if (variant) {
           unitPrice += variant.price_delta_pence;
           variantLabel = `${variant.name}: ${variant.value}`;
+          // A variant's weight REPLACES the product's base weight when set
+          // (e.g. "Leg" 2.4kg vs "Head" 3kg cuts of the same product) — it's
+          // not an addition, unlike price_delta_pence.
+          if (variant.weight_grams != null) unitWeightGrams = variant.weight_grams;
         }
       }
       const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
       const lineTotal = unitPrice * qty;
       subtotalPence += lineTotal;
-      lineItems.push({ product, variantLabel, unitPrice, qty, lineTotal });
+      lineItems.push({ product, variantLabel, unitPrice, unitWeightGrams, qty, lineTotal });
     }
 
     // Preorder bulk-order rule — only items marked "preorder" count toward
@@ -92,7 +97,7 @@ router.post('/', optionalAuth, async (req, res) => {
       const preorderSettings = preorderSettingsResult.rows[0];
       const preorderWeightGrams = lineItems
         .filter((li) => li.product.availability === 'preorder')
-        .reduce((sum, li) => sum + (li.product.weight_grams || 0) * li.qty, 0);
+        .reduce((sum, li) => sum + li.unitWeightGrams * li.qty, 0);
 
       if (preorderWeightGrams < preorderSettings.minimum_weight_grams) {
         // Truncate (never round up) so a value that hasn't actually reached

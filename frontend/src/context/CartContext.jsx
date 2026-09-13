@@ -30,7 +30,7 @@ export function CartProvider({ children }) {
           variantLabel: variant ? `${variant.name}: ${variant.value}` : null,
           unitPricePence: product.price_pence + (variant?.price_delta_pence || 0),
           availability: product.availability || 'in_stock',
-          weightGrams: product.weight_grams || 0,
+          weightGrams: (variant?.weight_grams != null ? variant.weight_grams : product.weight_grams) || 0,
           quantity,
         },
       ];

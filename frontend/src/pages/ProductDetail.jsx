@@ -103,8 +103,11 @@ export default function ProductDetail() {
                   <strong>Minimum order: {preorderSettings ? formatKg(preorderSettings.minimum_weight_grams) : '10'}kg.</strong> Preorder
                   items are sourced in bulk, so your basket's preorder items must total that much or more before you can check out.
                 </p>
-                {product.weight_grams > 0 && (
-                  <p>This item weighs <strong>{formatKg(product.weight_grams)}kg</strong> per unit.</p>
+                {(variant?.weight_grams > 0 || product.weight_grams > 0) && (
+                  <p>
+                    This {variant?.weight_grams > 0 ? `${variant.value} option` : 'item'} weighs{' '}
+                    <strong>{formatKg(variant?.weight_grams != null ? variant.weight_grams : product.weight_grams)}kg</strong> per unit.
+                  </p>
                 )}
                 <p>
                   You don't need the full minimum from this one item — mix and match with any of our other preorder

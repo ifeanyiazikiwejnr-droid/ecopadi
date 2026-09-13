@@ -193,14 +193,27 @@ router.get('/products/:id/variants', async (req, res) => {
 
 router.post('/products/:id/variants', async (req, res) => {
   const { id } = req.params;
-  const { name, value, priceDeltaPence } = req.body;
+  const { name, value, priceDeltaPence, weightGrams } = req.body;
   if (!name || !value) return res.status(400).json({ error: 'Both a name (e.g. "Type") and a value (e.g. "Straight 18\\"") are required.' });
   const productResult = await pool.query('SELECT id FROM products WHERE id = $1', [id]);
   if (!productResult.rows[0]) return res.status(404).json({ error: 'Product not found.' });
   const result = await pool.query(
-    `INSERT INTO product_variants (product_id, name, value, price_delta_pence) VALUES ($1,$2,$3,$4) RETURNING *`,
-    [id, name, value, Number(priceDeltaPence) || 0]
+    `INSERT INTO product_variants (product_id, name, value, price_delta_pence, weight_grams) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+    [id, name, value, Number(priceDeltaPence) || 0, weightGrams || null]
   );
+  res.json(result.rows[0]);
+});
+
+router.put('/products/:id/variants/:variantId', async (req, res) => {
+  const { id, variantId } = req.params;
+  const { name, value, priceDeltaPence, weightGrams } = req.body;
+  if (!name || !value) return res.status(400).json({ error: 'Both a name and a value are required.' });
+  const result = await pool.query(
+    `UPDATE product_variants SET name=$1, value=$2, price_delta_pence=$3, weight_grams=$4
+     WHERE id=$5 AND product_id=$6 RETURNING *`,
+    [name, value, Number(priceDeltaPence) || 0, weightGrams || null, variantId, id]
+  );
+  if (!result.rows[0]) return res.status(404).json({ error: 'Variant not found.' });
   res.json(result.rows[0]);
 });
 

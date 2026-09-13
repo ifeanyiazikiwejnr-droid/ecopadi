@@ -123,8 +123,13 @@ CREATE TABLE IF NOT EXISTS product_variants (
   name TEXT NOT NULL,                          -- e.g. "Size", "Weight"
   value TEXT NOT NULL,                         -- e.g. "500g", "1kg"
   price_delta_pence INTEGER NOT NULL DEFAULT 0,
+  weight_grams INTEGER,                        -- overrides the product's base weight for this specific
+                                                -- variant when set (e.g. "Leg" 2.4kg vs "Head" 3kg cuts) —
+                                                -- unlike price_delta_pence this is not an addition, it's a replacement
   sku_suffix TEXT
 );
+
+ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS weight_grams INTEGER;
 
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
