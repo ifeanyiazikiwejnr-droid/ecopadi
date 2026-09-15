@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import DescriptionEditor from './DescriptionEditor';
 
 const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty'];
 const AVAILABILITY_OPTIONS = [
@@ -74,11 +75,12 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
           <p className="muted" style={{ fontSize: 12.5, marginTop: -6, marginBottom: 10 }}>
             Leave blank if every option is priced through its own variant instead.
           </p>
-          <textarea
-            placeholder="Description" value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            style={{ marginTop: 10 }}
-          />
+          <div style={{ marginTop: 10 }}>
+            <DescriptionEditor
+              value={form.description}
+              onChange={(description) => setForm((f) => ({ ...f, description }))}
+            />
+          </div>
           <input
             type="number" placeholder="Stock quantity" value={form.stockQty}
             onChange={(e) => setForm((f) => ({ ...f, stockQty: e.target.value }))}

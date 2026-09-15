@@ -35,13 +35,16 @@ export default function Shop() {
             onChange={(e) => setSearch(e.target.value)}
             className="shop-search"
           />
-          <div className="cat-filters">
+          <select
+            className="branded-select shop-category-select"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            aria-label="Filter by category"
+          >
             {CATEGORIES.map((c) => (
-              <button key={c} className={`cat-chip ${category === c ? 'active' : ''}`} onClick={() => setCategory(c)}>
-                {c}
-              </button>
+              <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
             ))}
-          </div>
+          </select>
         </div>
 
         {loading ? (

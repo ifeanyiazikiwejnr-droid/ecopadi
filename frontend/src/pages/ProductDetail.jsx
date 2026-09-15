@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useCart } from '../context/CartContext';
 import { formatPence, formatKg } from '../format';
 import { resolveImageUrl } from '../imageUrl';
+import { renderDescription } from '../markdown';
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -131,14 +132,19 @@ export default function ProductDetail() {
               </div>
             )}
 
-            <p className="muted" style={{ margin: '18px 0', lineHeight: 1.7 }}>{product.description}</p>
+            {product.description && (
+              <div
+                className="product-description-content"
+                dangerouslySetInnerHTML={{ __html: renderDescription(product.description) }}
+              />
+            )}
 
             {product.variants?.length > 0 && (
               <div className="variant-picker">
                 <label className="eyebrow" htmlFor="variant-select" style={{ marginBottom: 8, display: 'block' }}>{product.variants[0].name}</label>
                 <select
                   id="variant-select"
-                  className="variant-select"
+                  className="branded-select variant-select"
                   value={variant?.id || ''}
                   onChange={(e) => setVariant(product.variants.find((v) => v.id === e.target.value) || null)}
                 >

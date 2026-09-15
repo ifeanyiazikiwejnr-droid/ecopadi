@@ -76,6 +76,6 @@ h1,h2,h3{ font-family: var(--serif); font-weight:600; line-height:1.05; letter-s
 .badge-preorder{ background: rgba(221,138,46,0.16); color: var(--gold); }
 .badge-instock{ background: rgba(19,79,35,0.1); color: var(--leaf); }
 
-a:focus-visible, button:focus-visible, input:focus-visible{
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
   outline: 2px solid var(--sprout); outline-offset: 1px; border-radius: 4px;
 }
