@@ -56,7 +56,7 @@ export default function AdminProducts() {
           {search && <span className="muted admin-search-count">{filteredProducts.length} of {products.length}</span>}
         </div>
         <table>
-          <thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Weight</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Product</th><th>Category</th><th>Weight</th><th>Stock</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {filteredProducts.map((p) => (
               <tr key={p.id}>
@@ -67,7 +67,7 @@ export default function AdminProducts() {
                 </td>
                 <td>{p.name} {p.is_placeholder && <span className="badge badge-placeholder">Sample</span>}</td>
                 <td className="muted">{p.category}</td>
-                <td>{p.price_pence != null ? formatPence(p.price_pence) : <span className="muted">Via variants</span>}</td>
+                {/* <td>{p.price_pence != null ? formatPence(p.price_pence) : <span className="muted">Via variants</span>}</td> */}
                 <td className="muted">
                   {p.weight_grams ? `${(p.weight_grams / 1000).toString()}kg` : (
                     p.availability === 'preorder' ? <span style={{ color: 'var(--pepper)' }}>Not set</span> : '—'
