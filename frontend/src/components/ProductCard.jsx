@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { resolveImageUrl } from '../imageUrl';
-import { formatPence } from '../format';
 
 export default function ProductCard({ product }) {
   return (
@@ -12,7 +11,6 @@ export default function ProductCard({ product }) {
       </div>
       <div className="product-body">
         <h3>{product.name}</h3>
-        <div className="product-price">{formatPence(product.price_pence)}</div>
       </div>
     </Link>
   );

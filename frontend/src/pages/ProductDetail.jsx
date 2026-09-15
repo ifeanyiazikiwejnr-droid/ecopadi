@@ -32,7 +32,7 @@ export default function ProductDetail() {
 
   if (!product) return <div className="wrap section"><p className="muted">Loading…</p></div>;
 
-  const price = product.price_pence + (variant?.price_delta_pence || 0);
+  const price = variant?.price_pence != null ? variant.price_pence : product.price_pence + (variant?.price_delta_pence || 0);
 
   async function handleAddToCart() {
     addItem(product, variant, quantity);
@@ -134,7 +134,10 @@ export default function ProductDetail() {
                 >
                   {product.variants.map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.value}{v.price_delta_pence > 0 ? ` (+${formatPence(v.price_delta_pence)})` : v.price_delta_pence < 0 ? ` (−${formatPence(Math.abs(v.price_delta_pence))})` : ''}
+                      {v.value}
+                      {v.price_pence != null
+                        ? ` — ${formatPence(v.price_pence)}`
+                        : v.price_delta_pence > 0 ? ` (+${formatPence(v.price_delta_pence)})` : v.price_delta_pence < 0 ? ` (−${formatPence(Math.abs(v.price_delta_pence))})` : ''}
                     </option>
                   ))}
                 </select>

@@ -122,7 +122,11 @@ CREATE TABLE IF NOT EXISTS product_variants (
   product_id UUID REFERENCES products(id) ON DELETE CASCADE,
   name TEXT NOT NULL,                          -- e.g. "Size", "Weight"
   value TEXT NOT NULL,                         -- e.g. "500g", "1kg"
-  price_delta_pence INTEGER NOT NULL DEFAULT 0,
+  price_pence INTEGER,                         -- this variant's OWN price, replacing the product's base
+                                                -- price entirely when set (e.g. "Curly 20-inch" is just
+                                                -- £29.99, not "base + something") — the current standard way
+  price_delta_pence INTEGER NOT NULL DEFAULT 0, -- legacy: added on top of the base price, only used as a
+                                                 -- fallback when price_pence isn't set on this variant
   weight_grams INTEGER,                        -- overrides the product's base weight for this specific
                                                 -- variant when set (e.g. "Leg" 2.4kg vs "Head" 3kg cuts) —
                                                 -- unlike price_delta_pence this is not an addition, it's a replacement
@@ -130,6 +134,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
 );
 
 ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS weight_grams INTEGER;
+ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS price_pence INTEGER;
 
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

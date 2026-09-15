@@ -28,7 +28,7 @@ export function CartProvider({ children }) {
           variantId: variant?.id || null,
           name: product.name,
           variantLabel: variant ? `${variant.name}: ${variant.value}` : null,
-          unitPricePence: product.price_pence + (variant?.price_delta_pence || 0),
+          unitPricePence: variant?.price_pence != null ? variant.price_pence : product.price_pence + (variant?.price_delta_pence || 0),
           availability: product.availability || 'in_stock',
           weightGrams: (variant?.weight_grams != null ? variant.weight_grams : product.weight_grams) || 0,
           quantity,

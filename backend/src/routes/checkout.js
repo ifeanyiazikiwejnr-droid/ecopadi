@@ -74,11 +74,15 @@ router.post('/', optionalAuth, async (req, res) => {
         const variantResult = await client.query('SELECT * FROM product_variants WHERE id = $1', [item.variantId]);
         const variant = variantResult.rows[0];
         if (variant) {
-          unitPrice += variant.price_delta_pence;
+          // A variant's own price REPLACES the product's base price when set
+          // — this is the standard way now. price_delta_pence only kicks in
+          // as a fallback for variants that predate this and never got an
+          // absolute price of their own.
+          unitPrice = variant.price_pence != null ? variant.price_pence : product.price_pence + variant.price_delta_pence;
           variantLabel = `${variant.name}: ${variant.value}`;
           // A variant's weight REPLACES the product's base weight when set
           // (e.g. "Leg" 2.4kg vs "Head" 3kg cuts of the same product) — it's
-          // not an addition, unlike price_delta_pence.
+          // not an addition, unlike the legacy price_delta_pence.
           if (variant.weight_grams != null) unitWeightGrams = variant.weight_grams;
         }
       }

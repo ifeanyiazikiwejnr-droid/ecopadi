@@ -3,12 +3,19 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { formatPence, formatKg } from '../format';
 
+// The price a variant will actually charge — its own price if set, otherwise
+// the legacy base-price-plus-delta fallback for variants created before
+// variants had their own price field.
+function effectivePrice(product, v) {
+  return v.price_pence != null ? v.price_pence : product.price_pence + (v.price_delta_pence || 0);
+}
+
 export default function ProductVariantManager({ product, onClose, onChanged }) {
   const { token } = useAuth();
   const [variants, setVariants] = useState([]);
   const [name, setName] = useState('Type');
   const [value, setValue] = useState('');
-  const [priceDelta, setPriceDelta] = useState('');
+  const [price, setPrice] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -24,18 +31,18 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
 
   async function handleAdd(e) {
     e.preventDefault();
-    if (!value.trim()) return;
+    if (!value.trim() || !price) return;
     setSaving(true);
     setError('');
     try {
       await api.adminCreateVariant(product.id, {
         name: name.trim() || 'Type',
         value: value.trim(),
-        priceDeltaPence: priceDelta ? Math.round(Number(priceDelta) * 100) : 0,
+        pricePence: Math.round(Number(price) * 100),
         weightGrams: weightKg ? Math.round(Number(weightKg) * 1000) : null,
       }, token);
       setValue('');
-      setPriceDelta('');
+      setPrice('');
       setWeightKg('');
       load();
       onChanged?.();
@@ -58,7 +65,7 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
     setEditForm({
       name: v.name,
       value: v.value,
-      priceDelta: v.price_delta_pence ? (v.price_delta_pence / 100).toString() : '',
+      price: (effectivePrice(product, v) / 100).toString(),
       weightKg: v.weight_grams ? (v.weight_grams / 1000).toString() : '',
     });
   }
@@ -70,7 +77,7 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
       await api.adminUpdateVariant(product.id, variantId, {
         name: editForm.name.trim() || 'Type',
         value: editForm.value.trim(),
-        priceDeltaPence: editForm.priceDelta ? Math.round(Number(editForm.priceDelta) * 100) : 0,
+        pricePence: Math.round(Number(editForm.price) * 100),
         weightGrams: editForm.weightKg ? Math.round(Number(editForm.weightKg) * 1000) : null,
       }, token);
       setEditingId(null);
@@ -92,20 +99,21 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
         </div>
         <p className="muted" style={{ fontSize: 13.5, marginBottom: 18 }}>
           These appear as a dropdown on the product page for customers to choose from — e.g. different cuts,
-          sizes, or lengths. Price adjustment is added on top of the base price. Weight, if set here,
-          replaces the product's base weight for that specific option — useful when different variants
-          genuinely weigh different amounts (e.g. "Leg" 2.4kg vs "Head" 3kg of the same product).
+          sizes, or lengths. Each variant has its own price (not the base price plus an adjustment) — so
+          "Curly 20-inch" is simply £29.99, on its own. Weight, if set, replaces the product's base weight
+          for that specific option — useful when variants genuinely weigh different amounts, e.g. "Leg" 2.4kg
+          vs "Head" 3kg of the same product.
         </p>
 
         <form className="checkout-form" onSubmit={handleAdd} style={{ marginBottom: 22 }}>
           <div className="form-row">
-            <input placeholder="Option name (e.g. Type)" value={name} onChange={(e) => setName(e.target.value)} />
+            <input placeholder="Option name (e.g. Cut)" value={name} onChange={(e) => setName(e.target.value)} />
             <input placeholder="Value (e.g. Leg)" required value={value} onChange={(e) => setValue(e.target.value)} />
           </div>
           <div className="form-row" style={{ marginTop: 10 }}>
             <input
-              type="number" step="0.01" placeholder="Price adjustment (£, optional)"
-              value={priceDelta} onChange={(e) => setPriceDelta(e.target.value)}
+              type="number" step="0.01" min="0" placeholder="Price (£)" required
+              value={price} onChange={(e) => setPrice(e.target.value)}
             />
             <input
               type="number" step="0.01" min="0" placeholder="Weight (kg, optional)"
@@ -128,7 +136,7 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
                     <input placeholder="Value" value={editForm.value} onChange={(e) => setEditForm((f) => ({ ...f, value: e.target.value }))} />
                   </div>
                   <div className="form-row" style={{ marginTop: 8 }}>
-                    <input type="number" step="0.01" placeholder="Price adjustment (£)" value={editForm.priceDelta} onChange={(e) => setEditForm((f) => ({ ...f, priceDelta: e.target.value }))} />
+                    <input type="number" step="0.01" min="0" placeholder="Price (£)" value={editForm.price} onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))} />
                     <input type="number" step="0.01" min="0" placeholder="Weight (kg)" value={editForm.weightKg} onChange={(e) => setEditForm((f) => ({ ...f, weightKg: e.target.value }))} />
                   </div>
                   {editError && <p style={{ color: 'var(--pepper)', marginTop: 8, fontSize: 13 }}>{editError}</p>}
@@ -147,9 +155,7 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
                     {v.weight_grams > 0 && <span className="muted" style={{ marginLeft: 8, fontSize: 12.5 }}>· {formatKg(v.weight_grams)}kg</span>}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span className="muted" style={{ fontSize: 13.5 }}>
-                      {v.price_delta_pence > 0 ? `+${formatPence(v.price_delta_pence)}` : v.price_delta_pence < 0 ? `−${formatPence(Math.abs(v.price_delta_pence))}` : 'No change'}
-                    </span>
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--pantry)' }}>{formatPence(effectivePrice(product, v))}</span>
                     <button className="btn btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => startEdit(v)}>Edit</button>
                     <button className="btn btn-ghost" style={{ padding: '5px 12px', fontSize: 12, color: 'var(--pepper)' }} onClick={() => handleDelete(v.id)}>Delete</button>
                   </div>
