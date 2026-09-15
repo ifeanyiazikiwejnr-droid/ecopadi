@@ -27,7 +27,7 @@ export default function AddProductModal({ onClose, onChanged }) {
     try {
       await api.adminCreateProduct({
         sku: form.sku, name: form.name, slug: form.slug || slugify(form.name), category: form.category,
-        description: form.description, pricePence: Number(form.pricePence), stockQty: Number(form.stockQty),
+        description: form.description, pricePence: form.pricePence === '' ? null : Number(form.pricePence), stockQty: Number(form.stockQty),
         availability: form.availability, availabilityNote: form.availabilityNote,
         weightGrams: form.weightGrams ? Math.round(Number(form.weightGrams) * 1000) : null,
       }, token);
@@ -57,10 +57,13 @@ export default function AddProductModal({ onClose, onChanged }) {
             <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
               {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
             </select>
-            <input type="number" step="0.01" placeholder="Price (£)" required
+            <input type="number" step="0.01" placeholder="Price (£, optional)"
               value={form.pricePence ? (form.pricePence / 100).toString() : ''}
-              onChange={(e) => setForm((f) => ({ ...f, pricePence: Math.round(Number(e.target.value) * 100) }))} />
+              onChange={(e) => setForm((f) => ({ ...f, pricePence: e.target.value === '' ? '' : Math.round(Number(e.target.value) * 100) }))} />
           </div>
+          <p className="muted" style={{ fontSize: 12.5, marginTop: -6, marginBottom: 10 }}>
+            Leave blank if every option will be priced through its own variant instead (Variants button, after saving).
+          </p>
           <textarea
             placeholder="Description" value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}

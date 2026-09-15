@@ -43,7 +43,7 @@ router.post('/products', async (req, res) => {
   const result = await pool.query(
     `INSERT INTO products (sku, name, slug, category, description, price_pence, compare_at_price_pence, image_url, stock_qty, is_placeholder, availability, availability_note, in_stock, weight_grams)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, FALSE, $10, $11, $12, $13) RETURNING *`,
-    [sku, name, slug, category, description, pricePence, compareAtPricePence || null, imageUrl || null, stockQty || 0, status, availabilityNote || null, status !== 'out_of_stock', weightGrams || null]
+    [sku, name, slug, category, description, pricePence != null && pricePence !== '' ? Number(pricePence) : null, compareAtPricePence || null, imageUrl || null, stockQty || 0, status, availabilityNote || null, status !== 'out_of_stock', weightGrams || null]
   );
   res.json(result.rows[0]);
 });
@@ -59,7 +59,7 @@ router.put('/products/:id', async (req, res) => {
        compare_at_price_pence=$5, stock_qty=$6, availability=$7, availability_note=$8,
        in_stock=$9, is_placeholder=FALSE, weight_grams=$10
      WHERE id=$11 RETURNING *`,
-    [name, category, description, pricePence, compareAtPricePence || null, stockQty, status, availabilityNote || null, status !== 'out_of_stock', weightGrams || null, req.params.id]
+    [name, category, description, pricePence != null && pricePence !== '' ? Number(pricePence) : null, compareAtPricePence || null, stockQty, status, availabilityNote || null, status !== 'out_of_stock', weightGrams || null, req.params.id]
   );
   if (!result.rows[0]) return res.status(404).json({ error: 'Product not found.' });
   res.json(result.rows[0]);

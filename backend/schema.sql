@@ -35,7 +35,10 @@ CREATE TABLE IF NOT EXISTS products (
   slug TEXT UNIQUE NOT NULL,
   category TEXT NOT NULL,                     -- Spices & Seasoning | Grains & Rice | Proteins & Meats | Pantry Essentials | Fresh Produce | Traditional Snacks
   description TEXT,
-  price_pence INTEGER NOT NULL,               -- store money as integer pence to avoid float errors
+  price_pence INTEGER,                         -- store money as integer pence to avoid float errors.
+                                                 -- Nullable: a product can be priced entirely through its
+                                                 -- variants instead (see product_variants.price_pence) —
+                                                 -- required only for products that don't use variants.
   compare_at_price_pence INTEGER,
   image_url TEXT,
   in_stock BOOLEAN NOT NULL DEFAULT TRUE,
@@ -51,6 +54,7 @@ CREATE TABLE IF NOT EXISTS products (
 -- Adds the nutrition column to a products table that already existed before
 -- this feature was added — safe and idempotent to run on any database.
 ALTER TABLE products ADD COLUMN IF NOT EXISTS nutrition JSONB;
+ALTER TABLE products ALTER COLUMN price_pence DROP NOT NULL;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS availability TEXT NOT NULL DEFAULT 'in_stock';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS availability_note TEXT;
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_availability_check;

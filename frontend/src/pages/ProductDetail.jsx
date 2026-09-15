@@ -38,7 +38,7 @@ export default function ProductDetail() {
     : product.price_pence;
 
   async function handleAddToCart() {
-    if (hasVariants && !variant) return;
+    if (price == null) return;
     addItem(product, variant, quantity);
   }
 
@@ -95,8 +95,10 @@ export default function ProductDetail() {
             )}
             {price != null ? (
               <div className="pdp-price">{formatPence(price)}</div>
-            ) : (
+            ) : hasVariants ? (
               <div className="pdp-price-placeholder">Select an option below to see the price</div>
+            ) : (
+              <div className="pdp-price-placeholder">Price not available — please contact us</div>
             )}
             {product.availability === 'out_of_stock' && <span className="badge badge-outofstock" style={{ marginBottom: 12, display: 'inline-block' }}>Out of Stock</span>}
             {product.availability === 'preorder' && <span className="badge badge-preorder" style={{ marginBottom: 12, display: 'inline-block' }}>Available on Preorder</span>}
@@ -162,13 +164,15 @@ export default function ProductDetail() {
               <button
                 className="btn btn-primary"
                 onClick={handleAddToCart}
-                disabled={product.availability === 'out_of_stock' || (hasVariants && !variant)}
+                disabled={product.availability === 'out_of_stock' || price == null}
               >
                 {product.availability === 'out_of_stock'
                   ? 'Out of Stock'
                   : hasVariants && !variant
                     ? 'Choose an option first'
-                    : product.availability === 'preorder' ? 'Preorder Now' : 'Add to Basket'}
+                    : price == null
+                      ? 'Price not available'
+                      : product.availability === 'preorder' ? 'Preorder Now' : 'Add to Basket'}
               </button>
             </div>
           </div>

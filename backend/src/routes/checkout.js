@@ -78,7 +78,9 @@ router.post('/', optionalAuth, async (req, res) => {
           // — this is the standard way now. price_delta_pence only kicks in
           // as a fallback for variants that predate this and never got an
           // absolute price of their own.
-          unitPrice = variant.price_pence != null ? variant.price_pence : product.price_pence + variant.price_delta_pence;
+          unitPrice = variant.price_pence != null
+            ? variant.price_pence
+            : (product.price_pence != null ? product.price_pence + variant.price_delta_pence : null);
           variantLabel = `${variant.name}: ${variant.value}`;
           // A variant's weight REPLACES the product's base weight when set
           // (e.g. "Leg" 2.4kg vs "Head" 3kg cuts of the same product) — it's
@@ -87,6 +89,9 @@ router.post('/', optionalAuth, async (req, res) => {
         }
       }
       const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      if (unitPrice == null) {
+        throw { status: 400, message: `${product.name}${variantLabel ? ` (${variantLabel})` : ''} doesn't have a price set. Please choose a different option, or contact us.` };
+      }
       const lineTotal = unitPrice * qty;
       subtotalPence += lineTotal;
       lineItems.push({ product, variantLabel, unitPrice, unitWeightGrams, qty, lineTotal });

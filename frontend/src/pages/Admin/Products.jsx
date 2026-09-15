@@ -67,7 +67,7 @@ export default function AdminProducts() {
                 </td>
                 <td>{p.name} {p.is_placeholder && <span className="badge badge-placeholder">Sample</span>}</td>
                 <td className="muted">{p.category}</td>
-                <td>{formatPence(p.price_pence)}</td>
+                <td>{p.price_pence != null ? formatPence(p.price_pence) : <span className="muted">Via variants</span>}</td>
                 <td className="muted">
                   {p.weight_grams ? `${(p.weight_grams / 1000).toString()}kg` : (
                     p.availability === 'preorder' ? <span style={{ color: 'var(--pepper)' }}>Not set</span> : '—'
