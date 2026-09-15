@@ -34,7 +34,7 @@ export default function ProductDetail() {
 
   const hasVariants = product.variants?.length > 0;
   const price = hasVariants
-    ? (variant ? (variant.price_pence != null ? variant.price_pence : product.price_pence + (variant.price_delta_pence || 0)) : null)
+    ? (variant ? (variant.price_pence != null ? variant.price_pence : (product.price_pence != null ? product.price_pence + (variant.price_delta_pence || 0) : null)) : null)
     : product.price_pence;
 
   async function handleAddToCart() {

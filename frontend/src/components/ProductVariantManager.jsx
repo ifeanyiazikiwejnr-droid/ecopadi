@@ -7,7 +7,8 @@ import { formatPence, formatKg } from '../format';
 // the legacy base-price-plus-delta fallback for variants created before
 // variants had their own price field.
 function effectivePrice(product, v) {
-  return v.price_pence != null ? v.price_pence : product.price_pence + (v.price_delta_pence || 0);
+  if (v.price_pence != null) return v.price_pence;
+  return product.price_pence != null ? product.price_pence + (v.price_delta_pence || 0) : null;
 }
 
 export default function ProductVariantManager({ product, onClose, onChanged }) {
@@ -65,7 +66,7 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
     setEditForm({
       name: v.name,
       value: v.value,
-      price: (effectivePrice(product, v) / 100).toString(),
+      price: effectivePrice(product, v) != null ? (effectivePrice(product, v) / 100).toString() : '',
       weightKg: v.weight_grams ? (v.weight_grams / 1000).toString() : '',
     });
   }
@@ -155,7 +156,9 @@ export default function ProductVariantManager({ product, onClose, onChanged }) {
                     {v.weight_grams > 0 && <span className="muted" style={{ marginLeft: 8, fontSize: 12.5 }}>· {formatKg(v.weight_grams)}kg</span>}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--pantry)' }}>{formatPence(effectivePrice(product, v))}</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: effectivePrice(product, v) != null ? 'var(--pantry)' : 'var(--pepper)' }}>
+                      {effectivePrice(product, v) != null ? formatPence(effectivePrice(product, v)) : 'No price set'}
+                    </span>
                     <button className="btn btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => startEdit(v)}>Edit</button>
                     <button className="btn btn-ghost" style={{ padding: '5px 12px', fontSize: 12, color: 'var(--pepper)' }} onClick={() => handleDelete(v.id)}>Delete</button>
                   </div>
