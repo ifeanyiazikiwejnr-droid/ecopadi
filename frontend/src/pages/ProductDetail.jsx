@@ -22,7 +22,7 @@ export default function ProductDetail() {
   function load() {
     api.getProduct(slug).then((p) => {
       setProduct(p);
-      setVariant(p.variants?.[0] || null);
+      setVariant(null);
       const thumb = p.images?.find((img) => img.is_thumbnail) || p.images?.[0];
       setActiveImage(thumb || null);
     }).catch(() => setProduct(null));
@@ -32,9 +32,13 @@ export default function ProductDetail() {
 
   if (!product) return <div className="wrap section"><p className="muted">Loading…</p></div>;
 
-  const price = variant?.price_pence != null ? variant.price_pence : product.price_pence + (variant?.price_delta_pence || 0);
+  const hasVariants = product.variants?.length > 0;
+  const price = hasVariants
+    ? (variant ? (variant.price_pence != null ? variant.price_pence : product.price_pence + (variant.price_delta_pence || 0)) : null)
+    : product.price_pence;
 
   async function handleAddToCart() {
+    if (hasVariants && !variant) return;
     addItem(product, variant, quantity);
   }
 
@@ -89,7 +93,11 @@ export default function ProductDetail() {
             {product.review_count > 0 && (
               <div className="stars">{'★'.repeat(Math.round(product.avg_rating))}{'☆'.repeat(5 - Math.round(product.avg_rating))} <span className="muted">({product.review_count} reviews)</span></div>
             )}
-            <div className="pdp-price">{formatPence(price)}</div>
+            {price != null ? (
+              <div className="pdp-price">{formatPence(price)}</div>
+            ) : (
+              <div className="pdp-price-placeholder">Select an option below to see the price</div>
+            )}
             {product.availability === 'out_of_stock' && <span className="badge badge-outofstock" style={{ marginBottom: 12, display: 'inline-block' }}>Out of Stock</span>}
             {product.availability === 'preorder' && <span className="badge badge-preorder" style={{ marginBottom: 12, display: 'inline-block' }}>Available on Preorder</span>}
             {product.availability_note && (product.availability === 'out_of_stock' || product.availability === 'preorder') && (
@@ -130,8 +138,9 @@ export default function ProductDetail() {
                   id="variant-select"
                   className="variant-select"
                   value={variant?.id || ''}
-                  onChange={(e) => setVariant(product.variants.find((v) => v.id === e.target.value))}
+                  onChange={(e) => setVariant(product.variants.find((v) => v.id === e.target.value) || null)}
                 >
+                  <option value="" disabled>Choose {product.variants[0].name.toLowerCase()}…</option>
                   {product.variants.map((v) => (
                     <option key={v.id} value={v.id}>
                       {v.value}
@@ -150,8 +159,16 @@ export default function ProductDetail() {
                 <span>{quantity}</span>
                 <button onClick={() => setQuantity((q) => q + 1)}>+</button>
               </div>
-              <button className="btn btn-primary" onClick={handleAddToCart} disabled={product.availability === 'out_of_stock'}>
-                {product.availability === 'out_of_stock' ? 'Out of Stock' : product.availability === 'preorder' ? 'Preorder Now' : 'Add to Basket'}
+              <button
+                className="btn btn-primary"
+                onClick={handleAddToCart}
+                disabled={product.availability === 'out_of_stock' || (hasVariants && !variant)}
+              >
+                {product.availability === 'out_of_stock'
+                  ? 'Out of Stock'
+                  : hasVariants && !variant
+                    ? 'Choose an option first'
+                    : product.availability === 'preorder' ? 'Preorder Now' : 'Add to Basket'}
               </button>
             </div>
           </div>

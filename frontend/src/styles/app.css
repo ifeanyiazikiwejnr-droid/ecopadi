@@ -163,6 +163,7 @@
 }
 .pdp-emoji{ font-size:96px; }
 .pdp-price{ font-family: var(--serif); font-size:30px; font-weight:700; color: var(--pantry); margin:12px 0; }
+.pdp-price-placeholder{ font-size:16px; color: var(--charcoal-soft); font-style:italic; margin:12px 0; }
 .availability-note{ font-size:14px; color: var(--charcoal-soft); font-style:italic; margin-bottom:10px; }
 
 .preorder-info-panel{
