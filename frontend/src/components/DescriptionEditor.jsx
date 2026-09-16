@@ -70,7 +70,11 @@ export default function DescriptionEditor({ value, onChange }) {
     const lines = value.split('\n');
     const [start, end] = block;
     const colCount = countColumns(lines[start]);
-    const newRow = '|' + Array(colCount).fill('  ').join('|') + '|';
+    const existingDataRows = end - (start + 2) + 1;
+    const nextRowNumber = existingDataRows + 1;
+    const firstCell = ` Row ${nextRowNumber} `;
+    const otherCells = Array(Math.max(0, colCount - 1)).fill('  ');
+    const newRow = '|' + [firstCell, ...otherCells].join('|') + '|';
     lines.splice(end + 1, 0, newRow);
     onChange(lines.join('\n'));
   }
