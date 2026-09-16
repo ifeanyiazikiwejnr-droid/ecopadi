@@ -45,7 +45,7 @@ export default function ProductImageManager({ product, onClose, onChanged }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h3>Images — {product.name}</h3>

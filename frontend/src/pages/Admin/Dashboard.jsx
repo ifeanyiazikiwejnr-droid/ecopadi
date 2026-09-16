@@ -24,9 +24,21 @@ export default function Dashboard() {
               <span className="muted">Orders</span>
               <h3 style={{ fontSize: 28 }}>{summary.orderCount}</h3>
             </button>
-            <div className="card stat-card"><span className="stat-icon">💷</span><span className="muted">Revenue (paid)</span><h3 style={{ fontSize: 28 }}>{formatPence(summary.revenuePence)}</h3></div>
-            <div className="card stat-card"><span className="stat-icon">📦</span><span className="muted">Products</span><h3 style={{ fontSize: 28 }}>{summary.productCount}</h3></div>
-            <div className="card stat-card"><span className="stat-icon">👥</span><span className="muted">Customers</span><h3 style={{ fontSize: 28 }}>{summary.customerCount}</h3></div>
+            <button className="card stat-card stat-card-clickable" onClick={() => navigate('/admin/orders')}>
+              <span className="stat-icon">💷</span>
+              <span className="muted">Revenue (paid)</span>
+              <h3 style={{ fontSize: 28 }}>{formatPence(summary.revenuePence)}</h3>
+            </button>
+            <button className="card stat-card stat-card-clickable" onClick={() => navigate('/admin/products')}>
+              <span className="stat-icon">📦</span>
+              <span className="muted">Products</span>
+              <h3 style={{ fontSize: 28 }}>{summary.productCount}</h3>
+            </button>
+            <button className="card stat-card stat-card-clickable" onClick={() => navigate('/admin/customers')}>
+              <span className="stat-icon">👥</span>
+              <span className="muted">Customers</span>
+              <h3 style={{ fontSize: 28 }}>{summary.customerCount}</h3>
+            </button>
           </div>
         )}
 
@@ -34,6 +46,7 @@ export default function Dashboard() {
           <NavLink to="/admin/products" end>Products</NavLink>
           <NavLink to="/admin/orders">Orders</NavLink>
           <NavLink to="/admin/preorders">Preorders</NavLink>
+          <NavLink to="/admin/customers">Customers</NavLink>
           <NavLink to="/admin/settings">Settings</NavLink>
         </div>
 

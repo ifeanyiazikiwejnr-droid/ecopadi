@@ -23,6 +23,7 @@ import AdminProducts from './pages/Admin/Products';
 import AdminOrders from './pages/Admin/Orders';
 import AdminPreorders from './pages/Admin/Preorders';
 import AdminSettings from './pages/Admin/Settings';
+import AdminCustomers from './pages/Admin/Customers';
 
 export default function App() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="preorders" element={<AdminPreorders />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="customers" element={<AdminCustomers />} />
           </Route>
           <Route path="*" element={<div className="wrap section"><h2>Page not found</h2></div>} />
         </Routes>

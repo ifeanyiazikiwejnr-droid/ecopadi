@@ -42,7 +42,7 @@ export default function AddProductModal({ onClose, onChanged }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h3>Add Product</h3>

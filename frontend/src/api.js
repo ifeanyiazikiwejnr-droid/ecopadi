@@ -53,6 +53,7 @@ export const api = {
 
   // Admin
   adminSummary: (token) => request('/admin/summary', { token }),
+  adminCustomers: (token) => request('/admin/customers', { token }),
   adminProducts: () => request('/products'),
   adminCreateProduct: (payload, token) => request('/admin/products', { method: 'POST', body: payload, token }),
   adminUpdateProduct: (id, payload, token) => request(`/admin/products/${id}`, { method: 'PUT', body: payload, token }),
