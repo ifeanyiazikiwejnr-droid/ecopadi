@@ -39,12 +39,8 @@ export default function AdminProducts() {
   });
 
   return (
-    <div>
-      <div className="admin-toolbar">
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>+ Add Product</button>
-      </div>
-
-      <div className="admin-table">
+      <div>
+       <div className="admin-table">
         <div className="admin-search-row">
           <input
             type="search"
@@ -54,6 +50,7 @@ export default function AdminProducts() {
             className="admin-search-input"
           />
           {search && <span className="muted admin-search-count">{filteredProducts.length} of {products.length}</span>}
+          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>+ Add Product</button>
         </div>
         <table>
           <thead><tr><th></th><th>Product</th><th>Category</th><th>Weight</th><th>Stock</th><th>Status</th><th></th></tr></thead>
