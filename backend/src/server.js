@@ -12,6 +12,7 @@ const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
 const rewardSettingsRoutes = require('./routes/rewardSettings');
 const preorderSettingsRoutes = require('./routes/preorderSettings');
+const bannerSlidesRoutes = require('./routes/bannerSlides');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reward-settings', rewardSettingsRoutes);
 app.use('/api/preorder-settings', preorderSettingsRoutes);
+app.use('/api/banner-slides', bannerSlidesRoutes);
 
 app.use((req, res) => res.status(404).json({ error: 'Not found.' }));
 

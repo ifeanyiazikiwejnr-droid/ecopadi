@@ -204,3 +204,20 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id);
 CREATE INDEX IF NOT EXISTS idx_images_product ON product_images(product_id);
+
+-- Shop banner slider — a sequence of admin-editable slides shown above the
+-- shop grid. Each slide has one image (Cloudinary, same as product photos)
+-- and an optional link — clicking the slide sends the visitor to link_url.
+-- position controls the order the slides play in; active lets the admin hide
+-- a slide without deleting it.
+CREATE TABLE IF NOT EXISTS banner_slides (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  image_url TEXT NOT NULL,
+  external_id TEXT,                 -- Cloudinary public_id, needed to delete the file later
+  link_url TEXT,                    -- where the slide goes when clicked (optional — nothing happens if blank)
+  title TEXT,                       -- optional caption text overlaid on the slide
+  position INTEGER NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_banner_slides_position ON banner_slides(position);
