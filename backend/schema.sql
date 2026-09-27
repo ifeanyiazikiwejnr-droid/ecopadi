@@ -205,19 +205,31 @@ CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id);
 CREATE INDEX IF NOT EXISTS idx_images_product ON product_images(product_id);
 
--- Shop banner slider — a sequence of admin-editable slides shown above the
--- shop grid. Each slide has one image (Cloudinary, same as product photos)
--- and an optional link — clicking the slide sends the visitor to link_url.
--- position controls the order the slides play in; active lets the admin hide
--- a slide without deleting it.
-CREATE TABLE IF NOT EXISTS banner_slides (
+-- Shop categories — previously a hardcoded list baked into the frontend;
+-- now admin-editable. products.category stays a plain TEXT column (matched
+-- by name, not a foreign key) to avoid a bigger migration, so renaming a
+-- category here cascades onto every product currently using the old name
+-- (see the admin route that does the rename).
+CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  image_url TEXT NOT NULL,
-  external_id TEXT,                 -- Cloudinary public_id, needed to delete the file later
-  link_url TEXT,                    -- where the slide goes when clicked (optional — nothing happens if blank)
-  title TEXT,                       -- optional caption text overlaid on the slide
+  name TEXT UNIQUE NOT NULL,
   position INTEGER NOT NULL DEFAULT 0,
-  active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_banner_slides_position ON banner_slides(position);
+CREATE INDEX IF NOT EXISTS idx_categories_position ON categories(position);
+
+-- Seed with the categories that used to be hardcoded in the frontend, so
+-- existing products keep matching after this upgrade. Safe to run more than
+-- once — only inserts names that aren't already there.
+INSERT INTO categories (name, position)
+VALUES
+  ('Fats, Oils & Butters', 0),
+  ('Heritage Botanicals', 1),
+  ('Natural Sweeteners', 2),
+  ('Snacks & Dry Foods', 3),
+  ('Protein', 4),
+  ('Bush Meat', 5),
+  ('Spices & Seasonings', 6),
+  ('Fresh Produce', 7),
+  ('Hair & Beauty', 8)
+ON CONFLICT (name) DO NOTHING;

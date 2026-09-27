@@ -313,83 +313,94 @@ router.put('/preorder-settings', async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// --- Shop banner slider ---
-// Slides are shown in "position" order on the shop page; each slide is a
-// single image uploaded straight to Cloudinary (same as product photos, so
-// it survives Render redeploys) with an optional destination link and caption.
-router.get('/banner-slides', async (req, res) => {
-  const result = await pool.query('SELECT * FROM banner_slides ORDER BY position, created_at');
+// --- Shop categories ---
+router.get('/categories', async (req, res) => {
+  const result = await pool.query('SELECT * FROM categories ORDER BY position, name');
   res.json(result.rows);
 });
 
-// Upload a new slide image. Field name must be "image". Placed at the end
-// of the current running order by default.
-router.post('/banner-slides', upload.single('image'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'An image is required.' });
-  const { linkUrl, title } = req.body;
-  const nextPosition = await pool.query('SELECT COALESCE(MAX(position), -1) + 1 AS next FROM banner_slides');
-  const cloudinaryResult = await uploadBufferToCloudinary(req.file.buffer);
-  const result = await pool.query(
-    `INSERT INTO banner_slides (image_url, external_id, link_url, title, position) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [cloudinaryResult.secure_url, cloudinaryResult.public_id, linkUrl || null, title || null, nextPosition.rows[0].next]
-  );
-  res.json(result.rows[0]);
+router.post('/categories', async (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'A category name is required.' });
+  const nextPosition = await pool.query('SELECT COALESCE(MAX(position), -1) + 1 AS next FROM categories');
+  try {
+    const result = await pool.query(
+      'INSERT INTO categories (name, position) VALUES ($1, $2) RETURNING *',
+      [name.trim(), nextPosition.rows[0].next]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'A category with that name already exists.' });
+    throw err;
+  }
 });
 
-// Reorder slides — expects { order: [id, id, id, ...] } in the desired order.
-// Must be declared before PUT /banner-slides/:id, or Express would match
-// "reorder" as an :id and route requests here into that handler instead.
-router.put('/banner-slides/reorder', async (req, res) => {
+// Reorder categories — expects { order: [id, id, id, ...] } in the desired
+// order. Must be declared before PUT /categories/:id, or Express would
+// match "reorder" as an :id and route requests here into that handler.
+router.put('/categories/reorder', async (req, res) => {
   const { order } = req.body;
   if (!Array.isArray(order) || order.length === 0) {
-    return res.status(400).json({ error: 'order must be a non-empty array of slide ids.' });
+    return res.status(400).json({ error: 'order must be a non-empty array of category ids.' });
   }
   await Promise.all(
-    order.map((id, index) => pool.query('UPDATE banner_slides SET position = $1 WHERE id = $2', [index, id]))
+    order.map((id, index) => pool.query('UPDATE categories SET position = $1 WHERE id = $2', [index, id]))
   );
-  const result = await pool.query('SELECT * FROM banner_slides ORDER BY position, created_at');
+  const result = await pool.query('SELECT * FROM categories ORDER BY position, name');
   res.json(result.rows);
 });
 
-// Update a slide's link/title/active flag — and optionally replace its
-// image (field name "image") in the same request.
-router.put('/banner-slides/:id', upload.single('image'), async (req, res) => {
+// Renaming a category cascades onto every product currently filed under the
+// old name — categories are matched by name, not id, everywhere else in the
+// app, so without this a rename would silently orphan those products from
+// the shop filter.
+router.put('/categories/:id', async (req, res) => {
   const { id } = req.params;
-  const { linkUrl, title, active } = req.body;
-  const existing = await pool.query('SELECT * FROM banner_slides WHERE id = $1', [id]);
-  const slide = existing.rows[0];
-  if (!slide) return res.status(404).json({ error: 'Slide not found.' });
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'A category name is required.' });
+  const existing = await pool.query('SELECT * FROM categories WHERE id = $1', [id]);
+  const category = existing.rows[0];
+  if (!category) return res.status(404).json({ error: 'Category not found.' });
 
-  let imageUrl = slide.image_url;
-  let externalId = slide.external_id;
-  if (req.file) {
-    const cloudinaryResult = await uploadBufferToCloudinary(req.file.buffer);
-    imageUrl = cloudinaryResult.secure_url;
-    externalId = cloudinaryResult.public_id;
-    if (slide.external_id) cloudinary.uploader.destroy(slide.external_id).catch(() => {});
+  const trimmed = name.trim();
+  try {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await client.query('UPDATE categories SET name = $1 WHERE id = $2 RETURNING *', [trimmed, id]);
+      if (trimmed !== category.name) {
+        await client.query('UPDATE products SET category = $1 WHERE category = $2', [trimmed, category.name]);
+      }
+      await client.query('COMMIT');
+      res.json(result.rows[0]);
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'A category with that name already exists.' });
+    throw err;
   }
-
-  const result = await pool.query(
-    `UPDATE banner_slides SET image_url=$1, external_id=$2, link_url=$3, title=$4, active=$5 WHERE id=$6 RETURNING *`,
-    [
-      imageUrl,
-      externalId,
-      linkUrl !== undefined ? (linkUrl || null) : slide.link_url,
-      title !== undefined ? (title || null) : slide.title,
-      active !== undefined ? active === true || active === 'true' : slide.active,
-      id,
-    ]
-  );
-  res.json(result.rows[0]);
 });
 
-router.delete('/banner-slides/:id', async (req, res) => {
+// Refuses to delete a category that's still in use — the admin should
+// re-assign or delete those products first, rather than the category
+// silently vanishing off products that still show it in the admin table.
+router.delete('/categories/:id', async (req, res) => {
   const { id } = req.params;
-  const existing = await pool.query('SELECT * FROM banner_slides WHERE id = $1', [id]);
-  const slide = existing.rows[0];
-  if (!slide) return res.status(404).json({ error: 'Slide not found.' });
-  await pool.query('DELETE FROM banner_slides WHERE id = $1', [id]);
-  if (slide.external_id) cloudinary.uploader.destroy(slide.external_id).catch(() => {});
+  const existing = await pool.query('SELECT * FROM categories WHERE id = $1', [id]);
+  const category = existing.rows[0];
+  if (!category) return res.status(404).json({ error: 'Category not found.' });
+
+  const inUse = await pool.query('SELECT COUNT(*)::int AS count FROM products WHERE category = $1', [category.name]);
+  if (inUse.rows[0].count > 0) {
+    return res.status(400).json({
+      error: `${inUse.rows[0].count} product${inUse.rows[0].count === 1 ? '' : 's'} still use this category. Move or delete ${inUse.rows[0].count === 1 ? 'it' : 'them'} first.`,
+    });
+  }
+  await pool.query('DELETE FROM categories WHERE id = $1', [id]);
   res.json({ deleted: true });
 });
 
