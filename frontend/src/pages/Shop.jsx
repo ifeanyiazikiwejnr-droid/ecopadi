@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import ProductCard from '../components/ProductCard';
-import ShopSlider from '../components/ShopSlider';
-
-const CATEGORIES = ['All', 'Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty'];
 
 export default function Shop() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.categories().then((rows) => setCategories(rows.map((c) => c.name))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -28,8 +30,6 @@ export default function Shop() {
           <p>Browse by category, or search for what you're craving.</p>
         </div>
 
-        <ShopSlider />
-
         <div className="shop-toolbar">
           <input
             type="search"
@@ -44,8 +44,9 @@ export default function Shop() {
             onChange={(e) => setCategory(e.target.value)}
             aria-label="Filter by category"
           >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
+            <option value="All">All categories</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>

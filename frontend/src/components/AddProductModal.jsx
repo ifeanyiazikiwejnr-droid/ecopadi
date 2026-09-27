@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import DescriptionEditor from './DescriptionEditor';
 
-const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty', 'Healthcare'];
 const AVAILABILITY_OPTIONS = [
   { value: 'in_stock', label: 'In Stock' },
   { value: 'out_of_stock', label: 'Out of Stock' },
   { value: 'preorder', label: 'Preorder' },
 ];
-const EMPTY_FORM = { sku: '', name: '', slug: '', category: CATEGORIES[0], description: '', pricePence: '', stockQty: 0, availability: 'in_stock', availabilityNote: '', weightGrams: '' };
+const EMPTY_FORM = { sku: '', name: '', slug: '', category: '', description: '', pricePence: '', stockQty: 0, availability: 'in_stock', availabilityNote: '', weightGrams: '' };
 
 function slugify(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -18,8 +17,17 @@ function slugify(name) {
 export default function AddProductModal({ onClose, onChanged }) {
   const { token } = useAuth();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.categories().then((rows) => {
+      const names = rows.map((c) => c.name);
+      setCategories(names);
+      setForm((f) => (f.category ? f : { ...f, category: names[0] || '' }));
+    }).catch(() => {});
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -56,7 +64,7 @@ export default function AddProductModal({ onClose, onChanged }) {
           </div>
           <div className="form-row" style={{ marginTop: 10 }}>
             <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
-              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+              {categories.map((c) => <option key={c}>{c}</option>)}
             </select>
             <input type="number" step="0.01" placeholder="Price (£, optional)"
               value={form.pricePence ? (form.pricePence / 100).toString() : ''}

@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import DescriptionEditor from './DescriptionEditor';
 
-const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty'];
 const AVAILABILITY_OPTIONS = [
   { value: 'in_stock', label: 'In Stock' },
   { value: 'out_of_stock', label: 'Out of Stock' },
@@ -22,8 +21,20 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
     availabilityNote: product.availability_note || '',
     weightGrams: product.weight_grams ? (product.weight_grams / 1000).toString() : '',
   });
+  const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.categories().then((rows) => setCategories(rows.map((c) => c.name))).catch(() => {});
+  }, []);
+
+  // Keep the product's current category selectable even if it's since been
+  // renamed/deleted elsewhere — otherwise the dropdown would silently jump
+  // to a different value the moment categories loaded.
+  const categoryOptions = categories.includes(form.category) || !form.category
+    ? categories
+    : [form.category, ...categories];
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -64,7 +75,7 @@ export default function ProductEditModal({ product, onClose, onChanged }) {
           </div>
           <div className="form-row" style={{ marginTop: 10 }}>
             <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
-              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+              {categoryOptions.map((c) => <option key={c}>{c}</option>)}
             </select>
             <input
               type="number" step="0.01" placeholder="Price (£, optional)"
