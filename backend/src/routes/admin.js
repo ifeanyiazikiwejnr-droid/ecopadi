@@ -313,6 +313,86 @@ router.put('/preorder-settings', async (req, res) => {
   res.json(result.rows[0]);
 });
 
+// --- Shop banner slider ---
+// Slides are shown in "position" order on the shop page; each slide is a
+// single image uploaded straight to Cloudinary (same as product photos, so
+// it survives Render redeploys) with an optional destination link and caption.
+router.get('/banner-slides', async (req, res) => {
+  const result = await pool.query('SELECT * FROM banner_slides ORDER BY position, created_at');
+  res.json(result.rows);
+});
+
+// Upload a new slide image. Field name must be "image". Placed at the end
+// of the current running order by default.
+router.post('/banner-slides', upload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'An image is required.' });
+  const { linkUrl, title } = req.body;
+  const nextPosition = await pool.query('SELECT COALESCE(MAX(position), -1) + 1 AS next FROM banner_slides');
+  const cloudinaryResult = await uploadBufferToCloudinary(req.file.buffer);
+  const result = await pool.query(
+    `INSERT INTO banner_slides (image_url, external_id, link_url, title, position) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+    [cloudinaryResult.secure_url, cloudinaryResult.public_id, linkUrl || null, title || null, nextPosition.rows[0].next]
+  );
+  res.json(result.rows[0]);
+});
+
+// Reorder slides — expects { order: [id, id, id, ...] } in the desired order.
+// Must be declared before PUT /banner-slides/:id, or Express would match
+// "reorder" as an :id and route requests here into that handler instead.
+router.put('/banner-slides/reorder', async (req, res) => {
+  const { order } = req.body;
+  if (!Array.isArray(order) || order.length === 0) {
+    return res.status(400).json({ error: 'order must be a non-empty array of slide ids.' });
+  }
+  await Promise.all(
+    order.map((id, index) => pool.query('UPDATE banner_slides SET position = $1 WHERE id = $2', [index, id]))
+  );
+  const result = await pool.query('SELECT * FROM banner_slides ORDER BY position, created_at');
+  res.json(result.rows);
+});
+
+// Update a slide's link/title/active flag — and optionally replace its
+// image (field name "image") in the same request.
+router.put('/banner-slides/:id', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const { linkUrl, title, active } = req.body;
+  const existing = await pool.query('SELECT * FROM banner_slides WHERE id = $1', [id]);
+  const slide = existing.rows[0];
+  if (!slide) return res.status(404).json({ error: 'Slide not found.' });
+
+  let imageUrl = slide.image_url;
+  let externalId = slide.external_id;
+  if (req.file) {
+    const cloudinaryResult = await uploadBufferToCloudinary(req.file.buffer);
+    imageUrl = cloudinaryResult.secure_url;
+    externalId = cloudinaryResult.public_id;
+    if (slide.external_id) cloudinary.uploader.destroy(slide.external_id).catch(() => {});
+  }
+
+  const result = await pool.query(
+    `UPDATE banner_slides SET image_url=$1, external_id=$2, link_url=$3, title=$4, active=$5 WHERE id=$6 RETURNING *`,
+    [
+      imageUrl,
+      externalId,
+      linkUrl !== undefined ? (linkUrl || null) : slide.link_url,
+      title !== undefined ? (title || null) : slide.title,
+      active !== undefined ? active === true || active === 'true' : slide.active,
+      id,
+    ]
+  );
+  res.json(result.rows[0]);
+});
+
+router.delete('/banner-slides/:id', async (req, res) => {
+  const { id } = req.params;
+  const existing = await pool.query('SELECT * FROM banner_slides WHERE id = $1', [id]);
+  const slide = existing.rows[0];
+  if (!slide) return res.status(404).json({ error: 'Slide not found.' });
+  await pool.query('DELETE FROM banner_slides WHERE id = $1', [id]);
+  if (slide.external_id) cloudinary.uploader.destroy(slide.external_id).catch(() => {});
+  res.json({ deleted: true });
+});
+
 // --- Shop categories ---
 router.get('/categories', async (req, res) => {
   const result = await pool.query('SELECT * FROM categories ORDER BY position, name');
