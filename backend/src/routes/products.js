@@ -4,7 +4,7 @@ const { pool } = require('../db');
 
 const router = createAsyncRouter();
 
-// GET /api/products?category=Spices+%26+Seasoning&search=suya
+
 router.get('/', async (req, res) => {
   const { category, search } = req.query;
   const clauses = [];

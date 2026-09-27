@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import DescriptionEditor from './DescriptionEditor';
 
-const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty'];
+const CATEGORIES = ['Fats, Oils & Butters', 'Heritage Botanicals', 'Natural Sweeteners', 'Snacks & Dry Foods', 'Protein', 'Bush Meat', 'Spices & Seasonings', 'Fresh Produce', 'Hair & Beauty', 'Healthcare'];
 const AVAILABILITY_OPTIONS = [
   { value: 'in_stock', label: 'In Stock' },
   { value: 'out_of_stock', label: 'Out of Stock' },
