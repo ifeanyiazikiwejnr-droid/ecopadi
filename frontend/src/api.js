@@ -44,6 +44,7 @@ export const api = {
   checkout: (payload, token) => request('/checkout', { method: 'POST', body: payload, token }),
   rewardSettings: () => request('/reward-settings'),
   preorderSettings: () => request('/preorder-settings'),
+  bannerSlides: () => request('/banner-slides'),
   categories: () => request('/categories'),
   myOrders: (token) => request('/orders/mine', { token }),
   orderDetail: (orderNumber, token) => request(`/orders/${orderNumber}`, { token }),
@@ -97,6 +98,41 @@ export const api = {
     request(`/admin/products/${productId}/variants/${variantId}`, { method: 'DELETE', token }),
   adminDiscounts: (token) => request('/admin/discounts', { token }),
   adminCreateDiscount: (payload, token) => request('/admin/discounts', { method: 'POST', body: payload, token }),
+
+  // Shop banner slider — file uploads use multipart/form-data, not JSON.
+  adminGetBannerSlides: (token) => request('/admin/banner-slides', { token }),
+  adminCreateBannerSlide: async ({ file, linkUrl, title }, token) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (linkUrl) formData.append('linkUrl', linkUrl);
+    if (title) formData.append('title', title);
+    const res = await fetch(`${API_URL}/admin/banner-slides`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'Upload failed.');
+    return data;
+  },
+  adminUpdateBannerSlide: async (id, { file, linkUrl, title, active }, token) => {
+    const formData = new FormData();
+    if (file) formData.append('image', file);
+    if (linkUrl !== undefined) formData.append('linkUrl', linkUrl || '');
+    if (title !== undefined) formData.append('title', title || '');
+    if (active !== undefined) formData.append('active', String(active));
+    const res = await fetch(`${API_URL}/admin/banner-slides/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'Update failed.');
+    return data;
+  },
+  adminReorderBannerSlides: (order, token) =>
+    request('/admin/banner-slides/reorder', { method: 'PUT', body: { order }, token }),
+  adminDeleteBannerSlide: (id, token) => request(`/admin/banner-slides/${id}`, { method: 'DELETE', token }),
 
   // Categories
   adminGetCategories: (token) => request('/admin/categories', { token }),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import ProductCard from '../components/ProductCard';
+import ShopSlider from '../components/ShopSlider';
 
 export default function Shop() {
   const [products, setProducts] = useState([]);
@@ -29,6 +30,8 @@ export default function Shop() {
           <h2>The full Ecopadi pantry.</h2>
           <p>Browse by category, or search for what you're craving.</p>
         </div>
+
+        <ShopSlider />
 
         <div className="shop-toolbar">
           <input

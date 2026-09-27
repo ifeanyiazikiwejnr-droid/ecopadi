@@ -33,7 +33,7 @@ export default function AdminBannerSlides() {
     }
   }
 
-  async function handleFieldChange(slide, changes) {
+  function handleFieldChange(slide, changes) {
     setSlides((prev) => prev.map((s) => (s.id === slide.id ? { ...s, ...changes } : s)));
   }
 
