@@ -24,6 +24,7 @@ import AdminOrders from './pages/Admin/Orders';
 import AdminPreorders from './pages/Admin/Preorders';
 import AdminSettings from './pages/Admin/Settings';
 import AdminCustomers from './pages/Admin/Customers';
+import AdminBannerSlides from './pages/Admin/BannerSlides';
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="preorders" element={<AdminPreorders />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="slider" element={<AdminBannerSlides />} />
           </Route>
           <Route path="*" element={<div className="wrap section"><h2>Page not found</h2></div>} />
         </Routes>
