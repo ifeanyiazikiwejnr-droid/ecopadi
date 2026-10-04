@@ -250,3 +250,11 @@ VALUES
   ('Fresh Produce', 7),
   ('Hair & Beauty', 8)
 ON CONFLICT (name) DO NOTHING;
+
+-- Lets a product image be filed under one specific variant (e.g. a "Head"
+-- photo filed separately from a "Leg" photo on a Cow Meat product), instead
+-- of every image showing for every option. NULL means "general" — shown
+-- regardless of which variant the customer has picked. Deleting the variant
+-- just un-assigns its images rather than deleting them.
+ALTER TABLE product_images ADD COLUMN IF NOT EXISTS variant_id UUID REFERENCES product_variants(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_product_images_variant ON product_images(variant_id);

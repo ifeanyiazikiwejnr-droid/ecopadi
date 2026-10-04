@@ -6,6 +6,21 @@ import { formatPence, formatKg } from '../format';
 import { resolveImageUrl } from '../imageUrl';
 import { renderDescription } from '../markdown';
 
+// Images can be filed under one specific variant (e.g. "Head" photos kept
+// separate from "Leg" photos on a Cow Meat product) — images with no
+// variant_id are "general" and always shown. Before a variant is chosen,
+// show the general shots (falling back to everything if none were filed as
+// general); once one is chosen, show that variant's photos first, followed
+// by the general ones, so the customer isn't staring at an empty gallery.
+function getVisibleImages(images, variant) {
+  if (!images?.length) return [];
+  const general = images.filter((img) => !img.variant_id);
+  if (!variant) return general.length > 0 ? general : images;
+  const specific = images.filter((img) => img.variant_id === variant.id);
+  const combined = [...specific, ...general];
+  return combined.length > 0 ? combined : images;
+}
+
 export default function ProductDetail() {
   const { slug } = useParams();
   const { addItem } = useCart();
@@ -24,15 +39,24 @@ export default function ProductDetail() {
     api.getProduct(slug).then((p) => {
       setProduct(p);
       setVariant(null);
-      const thumb = p.images?.find((img) => img.is_thumbnail) || p.images?.[0];
-      setActiveImage(thumb || null);
     }).catch(() => setProduct(null));
   }
 
   useEffect(() => { load(); }, [slug]);
 
+  // Re-pick which image is showing whenever the product loads or the
+  // selected variant changes, so switching from "Head" to "Leg" jumps the
+  // gallery to that cut's own photos instead of leaving an unrelated one up.
+  useEffect(() => {
+    if (!product) return;
+    const visible = getVisibleImages(product.images, variant);
+    const thumb = visible.find((img) => img.is_thumbnail);
+    setActiveImage(thumb || visible[0] || null);
+  }, [product, variant]);
+
   if (!product) return <div className="wrap section"><p className="muted">Loading…</p></div>;
 
+  const visibleImages = getVisibleImages(product.images, variant);
   const hasVariants = product.variants?.length > 0;
   const price = hasVariants
     ? (variant ? (variant.price_pence != null ? variant.price_pence : (product.price_pence != null ? product.price_pence + (variant.price_delta_pence || 0) : null)) : null)
@@ -73,9 +97,9 @@ export default function ProductDetail() {
                 <span className="pdp-emoji">🛒</span>
               )}
             </div>
-            {product.images?.length > 1 && (
+            {visibleImages.length > 1 && (
               <div className="pdp-thumb-strip">
-                {product.images.map((img) => (
+                {visibleImages.map((img) => (
                   <button
                     key={img.id}
                     className={`pdp-thumb ${activeImage?.id === img.id ? 'active' : ''}`}

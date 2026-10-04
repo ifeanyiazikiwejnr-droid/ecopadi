@@ -72,9 +72,10 @@ export const api = {
   // multipart/form-data, not JSON.
   adminGetProductImages: (productId, token) =>
     request(`/admin/products/${productId}/images`, { token }),
-  adminUploadProductImages: async (productId, files, token) => {
+  adminUploadProductImages: async (productId, files, token, variantId) => {
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append('images', file));
+    if (variantId) formData.append('variantId', variantId);
     const res = await fetch(`${API_URL}/admin/products/${productId}/images`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -86,6 +87,8 @@ export const api = {
   },
   adminSetThumbnail: (productId, imageId, token) =>
     request(`/admin/products/${productId}/images/${imageId}/thumbnail`, { method: 'PUT', token }),
+  adminSetImageVariant: (productId, imageId, variantId, token) =>
+    request(`/admin/products/${productId}/images/${imageId}/variant`, { method: 'PUT', body: { variantId: variantId || null }, token }),
   adminDeleteProductImage: (productId, imageId, token) =>
     request(`/admin/products/${productId}/images/${imageId}`, { method: 'DELETE', token }),
 

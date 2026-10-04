@@ -574,6 +574,19 @@
   font-size:11.5px; font-weight:700; cursor:pointer; color: var(--pantry);
 }
 .image-tile-actions button.danger{ color: var(--pepper); }
+.image-tile-actions select{
+  background: rgba(255,255,255,0.92); border:none; border-radius:8px; padding:5px 6px;
+  font-size:11.5px; font-weight:700; cursor:pointer; color: var(--pantry); width:100%;
+}
+
+.image-group{ margin-top:22px; }
+.image-group:first-of-type{ margin-top:0; }
+.image-group-label{
+  font-size:13.5px; font-weight:700; color: var(--pantry); margin-bottom:4px;
+  padding-top:14px; border-top:1px solid rgba(43,42,38,0.08);
+}
+.image-group:first-of-type .image-group-label{ padding-top:0; border-top:none; }
+.image-group .image-grid{ margin-top:10px; }
 
 .variant-list{ display:flex; flex-direction:column; gap:10px; max-height:320px; overflow-y:auto; }
 .variant-list-row{

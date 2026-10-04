@@ -109,14 +109,22 @@ router.put('/discounts/:id', async (req, res) => {
 // --- Product images ---
 
 // Upload one or more images for a product. Field name must be "images".
-// The first image uploaded becomes the thumbnail automatically. Files are
-// pushed straight to Cloudinary (see middleware/upload.js) so they survive
-// backend redeploys.
+// Optional "variantId" field files all of them under that one variant
+// (e.g. every "Head" photo) instead of leaving them general. The first
+// image uploaded for the product (across all variants) becomes the
+// thumbnail automatically. Files are pushed straight to Cloudinary (see
+// middleware/upload.js) so they survive backend redeploys.
 router.post('/products/:id/images', upload.array('images', 8), async (req, res) => {
   try {
     const { id } = req.params;
+    const { variantId } = req.body;
     const productResult = await pool.query('SELECT id FROM products WHERE id = $1', [id]);
     if (!productResult.rows[0]) return res.status(404).json({ error: 'Product not found.' });
+
+    if (variantId) {
+      const variantResult = await pool.query('SELECT id FROM product_variants WHERE id = $1 AND product_id = $2', [variantId, id]);
+      if (!variantResult.rows[0]) return res.status(400).json({ error: 'That variant was not found on this product.' });
+    }
 
     const existingCount = await pool.query('SELECT COUNT(*)::int AS count FROM product_images WHERE product_id = $1', [id]);
     let nextPosition = existingCount.rows[0].count;
@@ -130,8 +138,8 @@ router.post('/products/:id/images', upload.array('images', 8), async (req, res) 
       const makeThumbnail = !thumbnailAssigned;
       if (makeThumbnail) thumbnailAssigned = true;
       const result = await pool.query(
-        `INSERT INTO product_images (product_id, url, external_id, is_thumbnail, position) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-        [id, cloudinaryResult.secure_url, cloudinaryResult.public_id, makeThumbnail, nextPosition]
+        `INSERT INTO product_images (product_id, url, external_id, is_thumbnail, position, variant_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+        [id, cloudinaryResult.secure_url, cloudinaryResult.public_id, makeThumbnail, nextPosition, variantId || null]
       );
       inserted.push(result.rows[0]);
       nextPosition += 1;
@@ -159,6 +167,27 @@ router.put('/products/:id/images/:imageId/thumbnail', async (req, res) => {
   await syncThumbnail(id);
   const result = await pool.query('SELECT * FROM product_images WHERE product_id = $1 ORDER BY position', [id]);
   res.json(result.rows);
+});
+
+// Re-files an existing image under a different variant (or back to
+// "general" when variantId is null/omitted) — lets the admin group photos
+// after the fact instead of only at upload time.
+router.put('/products/:id/images/:imageId/variant', async (req, res) => {
+  const { id, imageId } = req.params;
+  const { variantId } = req.body;
+  const target = await pool.query('SELECT id FROM product_images WHERE id = $1 AND product_id = $2', [imageId, id]);
+  if (!target.rows[0]) return res.status(404).json({ error: 'Image not found.' });
+
+  if (variantId) {
+    const variantResult = await pool.query('SELECT id FROM product_variants WHERE id = $1 AND product_id = $2', [variantId, id]);
+    if (!variantResult.rows[0]) return res.status(400).json({ error: 'That variant was not found on this product.' });
+  }
+
+  const result = await pool.query(
+    'UPDATE product_images SET variant_id = $1 WHERE id = $2 AND product_id = $3 RETURNING *',
+    [variantId || null, imageId, id]
+  );
+  res.json(result.rows[0]);
 });
 
 router.delete('/products/:id/images/:imageId', async (req, res) => {
