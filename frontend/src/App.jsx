@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Account from './pages/Account';
 import VIP from './pages/VIP';
+import Concierge from './pages/Concierge';
 import FAQ from './pages/FAQ';
 import Delivery from './pages/Delivery';
 import Legal from './pages/Legal';
@@ -26,6 +27,7 @@ import AdminSettings from './pages/Admin/Settings';
 import AdminCustomers from './pages/Admin/Customers';
 import AdminBannerSlides from './pages/Admin/BannerSlides';
 import AdminCategories from './pages/Admin/Categories';
+import AdminConcierge from './pages/Admin/Concierge';
 
 export default function App() {
   return (
@@ -45,6 +47,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/account" element={<Account />} />
           <Route path="/vip" element={<VIP />} />
+          <Route path="/concierge" element={<Concierge />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/delivery" element={<Delivery />} />
           <Route path="/legal/:page" element={<Legal />} />
@@ -57,6 +60,7 @@ export default function App() {
             <Route path="customers" element={<AdminCustomers />} />
             <Route path="slider" element={<AdminBannerSlides />} />
             <Route path="categories" element={<AdminCategories />} />
+            <Route path="concierge" element={<AdminConcierge />} />
           </Route>
           <Route path="*" element={<div className="wrap section"><h2>Page not found</h2></div>} />
         </Routes>

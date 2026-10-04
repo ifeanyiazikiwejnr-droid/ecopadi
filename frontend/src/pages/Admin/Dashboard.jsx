@@ -49,6 +49,7 @@ export default function Dashboard() {
           <NavLink to="/admin/customers">Customers</NavLink>
           <NavLink to="/admin/slider">Shop Slider</NavLink>
           <NavLink to="/admin/categories">Categories</NavLink>
+          <NavLink to="/admin/concierge">Concierge</NavLink>
           <NavLink to="/admin/settings">Settings</NavLink>
         </div>
 

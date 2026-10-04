@@ -522,4 +522,58 @@ router.get('/customers', async (req, res) => {
   res.json(result.rows);
 });
 
+// --- VIP Concierge (the paid £/month personal-shopping subscription —
+// separate from the free VIP program above) ---
+router.get('/concierge/subscribers', async (req, res) => {
+  const result = await pool.query(
+    `SELECT u.id AS user_id, u.email, u.full_name, cs.status, cs.current_period_end, cs.created_at
+     FROM concierge_subscriptions cs
+     JOIN users u ON u.id = cs.user_id
+     ORDER BY cs.created_at DESC`
+  );
+  res.json(result.rows);
+});
+
+router.get('/concierge/requests', async (req, res) => {
+  const { status } = req.query;
+  const params = [];
+  let where = '';
+  if (status) {
+    params.push(status);
+    where = 'WHERE cr.status = $1';
+  }
+  const result = await pool.query(
+    `SELECT cr.*, u.email, u.full_name
+     FROM concierge_requests cr
+     JOIN users u ON u.id = cr.user_id
+     ${where}
+     ORDER BY cr.created_at DESC`,
+    params
+  );
+  res.json(result.rows);
+});
+
+const VALID_CONCIERGE_STATUS = ['new', 'quoted', 'ordered', 'fulfilled', 'cancelled'];
+
+router.put('/concierge/requests/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status, quotePence, adminNotes } = req.body;
+  if (status && !VALID_CONCIERGE_STATUS.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status.' });
+  }
+  const existing = await pool.query('SELECT * FROM concierge_requests WHERE id = $1', [id]);
+  if (!existing.rows[0]) return res.status(404).json({ error: 'Request not found.' });
+  const current = existing.rows[0];
+  const result = await pool.query(
+    `UPDATE concierge_requests SET status = $1, quote_pence = $2, admin_notes = $3, updated_at = now() WHERE id = $4 RETURNING *`,
+    [
+      status || current.status,
+      quotePence !== undefined ? quotePence : current.quote_pence,
+      adminNotes !== undefined ? adminNotes : current.admin_notes,
+      id,
+    ]
+  );
+  res.json(result.rows[0]);
+});
+
 module.exports = router;

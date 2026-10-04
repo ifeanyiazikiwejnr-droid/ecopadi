@@ -143,4 +143,16 @@ export const api = {
   adminUpdateCategory: (id, name, token) => request(`/admin/categories/${id}`, { method: 'PUT', body: { name }, token }),
   adminDeleteCategory: (id, token) => request(`/admin/categories/${id}`, { method: 'DELETE', token }),
   adminReorderCategories: (order, token) => request('/admin/categories/reorder', { method: 'PUT', body: { order }, token }),
+
+  // VIP Concierge — the paid monthly personal-shopping subscription.
+  // Separate from api.joinVip, which is the free VIP program.
+  conciergeStatus: (token) => request('/concierge/status', { token }),
+  conciergeCreateCheckoutSession: (token) => request('/concierge/checkout-session', { method: 'POST', token }),
+  conciergeBillingPortal: (token) => request('/concierge/billing-portal', { method: 'POST', token }),
+  conciergeSubmitRequest: (payload, token) => request('/concierge/requests', { method: 'POST', body: payload, token }),
+  conciergeMyRequests: (token) => request('/concierge/requests/mine', { token }),
+
+  adminConciergeSubscribers: (token) => request('/admin/concierge/subscribers', { token }),
+  adminConciergeRequests: (token, status) => request(`/admin/concierge/requests${status ? `?status=${status}` : ''}`, { token }),
+  adminUpdateConciergeRequest: (id, payload, token) => request(`/admin/concierge/requests/${id}`, { method: 'PUT', body: payload, token }),
 };

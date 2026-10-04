@@ -19,6 +19,7 @@ export default function Navbar() {
           <NavLink to="/shop" onClick={() => setMenuOpen(false)}>Shop</NavLink>
           <NavLink to="/delivery" onClick={() => setMenuOpen(false)}>Delivery</NavLink>
           <NavLink to="/vip" onClick={() => setMenuOpen(false)}>VIP</NavLink>
+          <NavLink to="/concierge" onClick={() => setMenuOpen(false)}>VIP Concierge</NavLink>
           <NavLink to="/faq" onClick={() => setMenuOpen(false)}>FAQ</NavLink>
           {user ? (
             <NavLink to="/account" onClick={() => setMenuOpen(false)}>My Account</NavLink>

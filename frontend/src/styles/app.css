@@ -600,3 +600,64 @@
 }
 
 .muted{ color: var(--charcoal-soft); }
+
+/* --- VIP Concierge (paid personal-shopping subscription) --- */
+.concierge-pitch-panel{
+  background: var(--paper); padding:26px; border-radius:16px;
+  border:1px solid rgba(43,42,38,0.08); max-width:520px;
+}
+.concierge-list-form{
+  background: var(--paper); padding:26px; border-radius:16px;
+  border:1px solid rgba(43,42,38,0.08);
+}
+.concierge-list-form textarea{
+  width:100%; min-height:80px; padding:12px; border-radius:10px;
+  border:1.5px solid rgba(43,42,38,0.15); font-family:inherit;
+}
+.concierge-item-row{
+  display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;
+}
+.concierge-item-row input{
+  flex:1; min-width:140px; padding:11px 12px; border-radius:10px;
+  border:1.5px solid rgba(43,42,38,0.15);
+}
+.concierge-item-row input:first-child{ flex:2; min-width:200px; }
+.concierge-item-row input:nth-child(2){ flex:0 0 70px; min-width:70px; }
+.concierge-item-row button.danger{
+  flex:0 0 auto; background:none; border:1.5px solid rgba(190,52,52,0.3);
+  color: var(--pepper); border-radius:10px; padding:0 14px; cursor:pointer;
+}
+
+.concierge-requests-list, .concierge-admin-request{
+  background: var(--paper); padding:20px 22px; border-radius:14px;
+  border:1px solid rgba(43,42,38,0.08); margin-bottom:14px;
+}
+.concierge-request-head{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px; flex-wrap:wrap;
+}
+.concierge-request-items{ margin:0 0 8px; padding-left:18px; font-size:14px; line-height:1.6; }
+.concierge-admin-request-head{ margin-bottom:10px; }
+
+.concierge-admin-controls{
+  display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center;
+}
+.concierge-admin-controls select, .concierge-admin-controls input{
+  padding:9px 11px; border-radius:8px; border:1.5px solid rgba(43,42,38,0.15);
+}
+.concierge-admin-controls input[placeholder="Admin notes (visible to customer)"]{ flex:1; min-width:200px; }
+
+.badge-concierge-new{ background: var(--gold); color: var(--pantry); }
+.badge-concierge-quoted{ background: #e3dcc2; color: var(--pantry); }
+.badge-concierge-ordered{ background: #cfe3d8; color: var(--leaf); }
+.badge-concierge-fulfilled, .badge-concierge-active{ background: var(--leaf); color: var(--cream); }
+.badge-concierge-cancelled, .badge-concierge-canceled, .badge-concierge-past_due, .badge-concierge-inactive{ background: rgba(190,52,52,0.12); color: var(--pepper); }
+span.badge-concierge-new, span.badge-concierge-quoted, span.badge-concierge-ordered,
+span.badge-concierge-fulfilled, span.badge-concierge-active, span.badge-concierge-cancelled,
+span.badge-concierge-canceled, span.badge-concierge-past_due, span.badge-concierge-inactive{
+  display:inline-block; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; text-transform:capitalize;
+}
+
+@media (max-width:480px){
+  .concierge-item-row{ flex-direction:column; }
+  .concierge-item-row input:first-child, .concierge-item-row input:nth-child(2){ flex-basis:100%; min-width:0; }
+}

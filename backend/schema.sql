@@ -258,3 +258,38 @@ ON CONFLICT (name) DO NOTHING;
 -- just un-assigns its images rather than deleting them.
 ALTER TABLE product_images ADD COLUMN IF NOT EXISTS variant_id UUID REFERENCES product_variants(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_product_images_variant ON product_images(variant_id);
+
+-- VIP Concierge — a PAID monthly subscription (separate from the free VIP
+-- program above, which only ever changes users.is_vip). A subscriber can
+-- submit a personal shopping list of items that aren't in the catalogue and
+-- have the team source and ship them. Status is driven by Stripe
+-- subscription webhooks (see backend/src/routes/payments.js).
+CREATE TABLE IF NOT EXISTS concierge_subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'inactive' CHECK (status IN ('inactive', 'active', 'past_due', 'canceled')),
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT,
+  current_period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_concierge_subscriptions_status ON concierge_subscriptions(status);
+
+-- Personal shopping list submissions from active concierge subscribers.
+-- `items` is a JSON array of { name, qty, notes } the customer typed in —
+-- these aren't catalogue products, so there's no fixed price until an admin
+-- quotes it.
+CREATE TABLE IF NOT EXISTS concierge_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  items JSONB NOT NULL,
+  notes TEXT,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'quoted', 'ordered', 'fulfilled', 'cancelled')),
+  quote_pence INTEGER,
+  admin_notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_concierge_requests_user ON concierge_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_concierge_requests_status ON concierge_requests(status);

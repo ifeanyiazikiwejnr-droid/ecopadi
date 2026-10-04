@@ -75,11 +75,63 @@ router.post('/stripe/webhook', express.raw({ type: 'application/json' }), async 
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+    if (session.mode === 'subscription') {
+      // VIP Concierge subscription checkout completed — activate it. The
+      // Stripe subscription itself carries the renewal date; pull it so the
+      // customer sees an accurate "renews on" without a second webhook.
+      const userId = session.metadata?.concierge_user_id;
+      if (userId) {
+        let periodEnd = null;
+        try {
+          const sub = await stripe.subscriptions.retrieve(session.subscription);
+          periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
+        } catch (err) {
+          console.error('Could not retrieve concierge subscription from Stripe:', err);
+        }
+        await pool.query(
+          `INSERT INTO concierge_subscriptions (user_id, status, stripe_customer_id, stripe_subscription_id, current_period_end, updated_at)
+           VALUES ($1, 'active', $2, $3, $4, now())
+           ON CONFLICT (user_id) DO UPDATE SET
+             status = 'active',
+             stripe_customer_id = $2,
+             stripe_subscription_id = $3,
+             current_period_end = $4,
+             updated_at = now()`,
+          [userId, session.customer, session.subscription, periodEnd]
+        );
+      }
+    } else {
+      await pool.query(
+        `UPDATE orders SET status = 'paid', payment_reference = $1 WHERE order_number = $2`,
+        [session.id, session.metadata.order_number]
+      );
+    }
+  }
+
+  // Keeps concierge status in sync as the subscription renews, fails to
+  // renew, or the customer cancels it from the Stripe billing portal.
+  if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+    const sub = event.data.object;
+    const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
+    const status = event.type === 'customer.subscription.deleted'
+      ? 'canceled'
+      : sub.status === 'active' ? 'active' : sub.status === 'past_due' ? 'past_due' : sub.status === 'canceled' ? 'canceled' : 'inactive';
     await pool.query(
-      `UPDATE orders SET status = 'paid', payment_reference = $1 WHERE order_number = $2`,
-      [session.id, session.metadata.order_number]
+      `UPDATE concierge_subscriptions SET status = $1, current_period_end = $2, updated_at = now() WHERE stripe_subscription_id = $3`,
+      [status, periodEnd, sub.id]
     );
   }
+
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object;
+    if (invoice.subscription) {
+      await pool.query(
+        `UPDATE concierge_subscriptions SET status = 'past_due', updated_at = now() WHERE stripe_subscription_id = $1`,
+        [invoice.subscription]
+      );
+    }
+  }
+
   res.json({ received: true });
 });
 
