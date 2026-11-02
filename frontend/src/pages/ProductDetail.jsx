@@ -157,10 +157,13 @@ export default function ProductDetail() {
             )}
 
             {product.description && (
-              <div
-                className="product-description-content"
-                dangerouslySetInnerHTML={{ __html: renderDescription(product.description) }}
-              />
+              <details className="pdp-description">
+                <summary>Product Description</summary>
+                <div
+                  className="product-description-content"
+                  dangerouslySetInnerHTML={{ __html: renderDescription(product.description) }}
+                />
+              </details>
             )}
 
             {product.variants?.length > 0 && (
