@@ -30,23 +30,34 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <div className="hero-cutout cutout-1" /><div className="hero-cutout cutout-2" />
-        <div className="wrap hero-grid">
-          <div>
+        <img className="hero-bg" src="/brand/spice-bowls.jpg" alt="" />
+        <div className="wrap hero-content">
+          <div className="hero-copy">
             <div className="hero-eyebrow">Authentic African Foods, Spices &amp; Traditional Ingredients</div>
-            <h1>bringing <em>africa</em> closer to home</h1>
+            <h1>Bringing <em>Africa</em> closer to home</h1>
             <p className="lede">Carefully sourced and delivered across the United Kingdom — for homes, restaurants, retailers, and food lovers everywhere.</p>
             <div className="hero-actions">
-              <Link to="/shop" className="btn btn-primary">Browse Groceries →</Link>
-              <Link to="/vip" className="btn btn-ghost" style={{ color: 'var(--cream)', borderColor: 'rgba(248,245,239,0.4)' }}>Join VIP — It's Free</Link>
+              <Link to="/shop" className="btn btn-primary">Shop groceries</Link>
+              <Link to="/vip" className="btn btn-ghost" style={{ color: 'var(--cream)', borderColor: 'rgba(248,245,239,0.6)' }}>Join VIP — free</Link>
             </div>
             <div className="hero-tagline">Fresh <span>•</span> Authentic <span>•</span> Trusted</div>
           </div>
-          <div className="hero-visual">
-            <img src="/brand/spice-bowls.jpg" alt="Fresh African spices, herbs and ingredients" />
-          </div>
         </div>
       </section>
+
+      <div className="promo-row">
+        <Link to="/shop" className="promo-tile">
+          <img src="/brand/market-produce.jpg" alt="" />
+          <div className="promo-text"><div className="promo-over">The pantry</div><h3>Everything for a proper African kitchen</h3><span className="promo-cta">Shop now</span></div>
+        </Link>
+        <Link to="/vip" className="promo-tile no-photo">
+          <div className="promo-text"><div className="promo-over">Free to join</div><h3>Become a VIP — free delivery, rewards &amp; offers</h3><span className="promo-cta">Join VIP</span></div>
+        </Link>
+        <Link to="/concierge" className="promo-tile">
+          <img src="/brand/spice-bowls.jpg" alt="" />
+          <div className="promo-text"><div className="promo-over">VIP Concierge</div><h3>Can't find it? We'll source it for you</h3><span className="promo-cta">Find out more</span></div>
+        </Link>
+      </div>
 
       <div className="marquee" aria-hidden="true">
         <div className="marquee-track">
@@ -109,8 +120,8 @@ export default function Home() {
           <div className="cat-grid">
             {featured.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
-          <div style={{ textAlign: 'center', marginTop: 40 }}>
-            <Link to="/shop" className="btn btn-dark">View Full Shop →</Link>
+          <div style={{ textAlign: 'center' }}>
+            <Link to="/shop" className="view-all">View all</Link>
           </div>
         </div>
       </section>
@@ -145,7 +156,7 @@ export default function Home() {
       <div className="promise-strip">
         <div className="wrap promise-inner">
           <h2>Let's bring <em>groceries from home</em> to your kitchen.</h2>
-          <Link to="/shop" className="btn btn-primary">Start Shopping →</Link>
+          <Link to="/shop" className="btn btn-primary">Start shopping</Link>
         </div>
       </div>
     </>

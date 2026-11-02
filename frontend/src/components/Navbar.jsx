@@ -9,6 +9,17 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
+    <>
+    <div className="utility-bar">
+      <div className="utility-inner wrap">
+        <span>Free UK delivery on orders over £50 for VIP members</span>
+        <div className="utility-links">
+          <Link to="/order-lookup">Track an order</Link>
+          <Link to="/vip">Join VIP</Link>
+          <Link to="/delivery">Delivery info</Link>
+        </div>
+      </div>
+    </div>
     <header className="site-header">
       <nav className="nav-inner wrap">
         <Link to="/" className="logo">
@@ -44,5 +55,6 @@ export default function Navbar() {
         </div>
       </nav>
     </header>
+    </>
   );
 }
