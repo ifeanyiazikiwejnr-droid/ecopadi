@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useCart } from '../context/CartContext';
@@ -19,6 +19,34 @@ function getVisibleImages(images, variant) {
   const specific = images.filter((img) => img.variant_id === variant.id);
   const combined = [...specific, ...general];
   return combined.length > 0 ? combined : images;
+}
+
+// Description shows about half-way, fading out into a "Read more" button.
+// The button only appears when the text is actually long enough to be cut off.
+function ExpandableDescription({ html }) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    setExpanded(false);
+    const el = ref.current;
+    if (el) setOverflowing(el.scrollHeight > 170);
+  }, [html]);
+
+  return (
+    <div className="pdp-description">
+      <h4 className="pdp-description-title">Product Description</h4>
+      <div className={`pdp-description-body ${overflowing && !expanded ? 'is-clamped' : ''}`}>
+        <div ref={ref} className="product-description-content" dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+      {overflowing && (
+        <button type="button" className="pdp-readmore" onClick={() => setExpanded((e) => !e)} aria-expanded={expanded}>
+          {expanded ? 'Read less' : 'Read more'}
+        </button>
+      )}
+    </div>
+  );
 }
 
 export default function ProductDetail() {
@@ -157,13 +185,7 @@ export default function ProductDetail() {
             )}
 
             {product.description && (
-              <details className="pdp-description">
-                <summary>Product Description</summary>
-                <div
-                  className="product-description-content"
-                  dangerouslySetInnerHTML={{ __html: renderDescription(product.description) }}
-                />
-              </details>
+              <ExpandableDescription html={renderDescription(product.description)} />
             )}
 
             {product.variants?.length > 0 && (
