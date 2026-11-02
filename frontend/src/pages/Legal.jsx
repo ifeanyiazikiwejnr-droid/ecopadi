@@ -141,24 +141,28 @@ export default function Legal() {
 
   if (page === 'privacy') {
     return (
-      <section className="section" style={{ maxWidth: 760, margin: '0 auto' }}>
+      <section className="section">
+       <div className="wrap legal-wrap" style={{ maxWidth: 760 }}>
         <div className="eyebrow">Legal</div>
-        <h1 style={{ fontSize: 34, margin: '14px 0 6px', color: 'var(--pantry)' }}>Privacy Policy</h1>
+        <h1 style={{ fontSize: 'clamp(26px, 7vw, 34px)', margin: '14px 0 6px', color: 'var(--pantry)' }}>Privacy Policy</h1>
         <p className="muted" style={{ marginBottom: 34, fontSize: 13.5 }}>Publication date: August 2026</p>
         <PrivacyPolicy />
+       </div>
       </section>
     );
   }
 
   const content = PLACEHOLDER_PAGES[page] || PLACEHOLDER_PAGES.terms;
   return (
-    <section className="section" style={{ maxWidth: 720, margin: '0 auto' }}>
+    <section className="section">
+     <div className="wrap legal-wrap" style={{ maxWidth: 720 }}>
       <div className="eyebrow">Legal</div>
-      <h1 style={{ fontSize: 34, margin: '14px 0 20px', color: 'var(--pantry)' }}>{content.title}</h1>
+      <h1 style={{ fontSize: 'clamp(26px, 7vw, 34px)', margin: '14px 0 20px', color: 'var(--pantry)' }}>{content.title}</h1>
       <div className="card" style={{ padding: 24, borderColor: 'rgba(178,58,46,0.3)', background: 'rgba(178,58,46,0.05)' }}>
         <span className="badge badge-placeholder">Placeholder — awaiting your document</span>
         <p className="muted" style={{ marginTop: 14, lineHeight: 1.7 }}>{content.body}</p>
       </div>
+     </div>
     </section>
   );
 }
