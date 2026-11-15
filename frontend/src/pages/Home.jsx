@@ -30,7 +30,7 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <img className="hero-bg" src="/brand/spice-bowls.jpg" alt="" />
+        <img className="hero-bg" src="/brand/market.jpg" alt="" />
         <div className="wrap hero-content">
           <div className="hero-copy">
             <div className="hero-eyebrow">Authentic African Foods, Spices &amp; Traditional Ingredients</div>
@@ -51,6 +51,7 @@ export default function Home() {
           <div className="promo-text"><div className="promo-over">The pantry</div><h3>Everything for a proper African kitchen</h3><span className="promo-cta">Shop now</span></div>
         </Link>
         <Link to="/delivery" className="promo-tile no-photo">
+          <img src="/brand/delivery.jpg" alt="" />
           <div className="promo-text"><div className="promo-over">Delivery</div><h3>Free UK delivery on every order over £100</h3><span className="promo-cta">Delivery info</span></div>
         </Link>
         <Link to="/concierge" className="promo-tile">
