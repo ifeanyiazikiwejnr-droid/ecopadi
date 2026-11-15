@@ -1,18 +1,243 @@
 import { useParams } from 'react-router-dom';
 
-const PLACEHOLDER_PAGES = {
-  terms: {
-    title: 'Terms & Conditions',
-    body: `This page is a placeholder. Your real Terms & Conditions document wasn't attached yet —
-      once you send it over, this content will be replaced with your actual policy text
-      (word-for-word, formatted for the web).`,
-  },
+// Small helper: **bold** markers in the document text become <strong>.
+function rich(text) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') ? <strong key={i}>{part.slice(2, -2)}</strong> : part
+  );
+}
+
+const CONTACT_EMAIL = 'ecopadilimiteduk@gmail.com';
+const CONTACT_PHONE = '+447901555647';
+
+// Block types: p (paragraph), h3 (sub-heading), ul (bullet list),
+// contact (label / value lines, optionally linked).
+const LEGAL_DOCS = {
   returns: {
-    title: 'Returns & Refund Policy',
-    body: `This page is a placeholder for your Returns & Refund Policy. Send over the document
-      you have and it will be dropped in here in full.`,
+    title: 'Returns and Refund Policy',
+    intro: [],
+    sections: [
+      {
+        heading: '1. Returns Policy',
+        blocks: [
+          { type: 'p', text: 'As our goods are organically sourced without preservatives, we **do not accept returns** for any food stuff once they have been delivered or collected.' },
+        ],
+      },
+      {
+        heading: '2. Refunds & Replacements',
+        blocks: [
+          { type: 'p', text: 'We understand that issues may arise, and we are happy to provide a **refund or replacement** in the following circumstances:' },
+          { type: 'h3', text: 'Damaged or Incorrect Items' },
+          { type: 'p', text: 'If you receive an item that is:' },
+          { type: 'ul', items: ['Damaged or spoiled upon arrival.', 'Incorrect (not the product you ordered)'] },
+          { type: 'p', text: '**Action Required:**' },
+          {
+            type: 'ul',
+            items: [
+              'Contact us within **24 hours** of receiving your order.',
+              'Provide clear photos of the damaged or incorrect item, including the packaging.',
+              'Once verified, we will offer a refund or send a replacement at no additional cost.',
+            ],
+          },
+        ],
+      },
+      {
+        heading: '3. Missing Items',
+        blocks: [
+          { type: 'p', text: 'If an item from your order is missing, please contact us within **24 hours** of delivery. We will verify the issue and either refund the missing item or send a replacement.' },
+        ],
+      },
+      {
+        heading: '4. Cancellation & Order Modifications',
+        blocks: [
+          {
+            type: 'ul',
+            items: [
+              'Cancellations: Orders can be cancelled within 24 hours of placement for a full refund. After this window, cancellations may not be possible as sourcing begins immediately.',
+              'Modifications: If you need to change your order, please contact us as soon as possible. While we will do the best we can to accommodate changes, we can not guarantee modifications after sourcing has been made.',
+            ],
+          },
+        ],
+      },
+      {
+        heading: '5. Refund Processing',
+        blocks: [
+          {
+            type: 'ul',
+            items: [
+              'Approved refunds will be processed within 5-7 business days back to the original payment method.',
+              'If you do not receive your refund within this period, please check with your bank or payment provider before contacting us.',
+            ],
+          },
+        ],
+      },
+      {
+        heading: '6. Contact Us',
+        blocks: [
+          { type: 'p', text: 'For any refund or return inquiries, please contact us:' },
+          {
+            type: 'contact',
+            lines: [
+              { label: 'Email', value: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
+              { label: 'Phone', value: CONTACT_PHONE, href: `tel:${CONTACT_PHONE}` },
+              { label: 'Address', value: "St. Paul's Road, Birmingham, United Kingdom, B12 8LZ." },
+            ],
+          },
+        ],
+      },
+    ],
+    outro: ['We value our customers and will do our best to resolve any issues fairly and promptly. Thank you for choosing Ecopadi UK Ltd!'],
+  },
+
+  terms: {
+    title: 'Terms of Use',
+    intro: [
+      'Welcome to Ecopadi UK Ltd! By accessing or using our website, https://ecopadi.com/, you agree to be bound by these Terms of Use.',
+      'If you do not agree with any part of these terms, please do not use our website.',
+    ],
+    sections: [
+      {
+        heading: '1. Use of Our Website',
+        blocks: [{ type: 'ul', items: [
+          'You must be at least 18 years of age to use this website or have a parental or guardian consent.',
+          'You agree to use this website only for lawful purposes and in accordance with all applicable laws and regulations.',
+          'You must not engage in any activity that disrupts or interferes with the proper functioning of the website.',
+        ] }],
+      },
+      {
+        heading: '2. Intellectual Property Rights',
+        blocks: [{ type: 'ul', items: [
+          'All content on this website including text, images, logos, and graphics, is the property of Ecopadi UK and is protected by copyright and trademark laws.',
+          'You may not reproduce, distribute, or use any content from this site without our prior written consent.',
+        ] }],
+      },
+      {
+        heading: '3. Products & Pricing',
+        blocks: [{ type: 'ul', items: [
+          'All products listed on the website are subject to availability.',
+          'Prices may change without prior notice, and we reserve the right to modify or discontinue any product at any time.',
+          'We strive to ensure that product descriptions and prices are accurate, but we do not guarantee that all information is error free.',
+        ] }],
+      },
+      {
+        heading: '4. Orders & Payments',
+        blocks: [{ type: 'ul', items: [
+          'By placing an order, you agree to provide accurate and complete information.',
+          'We accept payments through secure and authorised payment gateways.',
+          'Ecopadi UK reserves the right to refuse or cancel any order due to suspected fraud, incorrect pricing, or product unavailability.',
+        ] }],
+      },
+      {
+        heading: '5. Delivery & Returns',
+        blocks: [{ type: 'ul', items: [
+          'Delivery times vary based on location and product availability.',
+          'If you receive a defective or incorrect item, you must notify us within 7 days for a replacement or refund.',
+          'We do not accept returns for perishable food items unless there is a product defect.',
+        ] }],
+      },
+      {
+        heading: '6. User Accounts',
+        blocks: [{ type: 'ul', items: [
+          'You may be required to create an account to access certain features.',
+          'You are responsible for maintaining the confidentiality of your account credentials.',
+          'We reserve the right to suspend or terminate accounts that violate our policies.',
+        ] }],
+      },
+      {
+        heading: '7. Limitation of Liability',
+        blocks: [{ type: 'ul', items: [
+          'Ecopadi UK is not liable for any direct, indirect, incidental, or consequential damages arising from the use of our website or products.',
+          'We do not guarantee that our website will always be error free or uninterrupted.',
+        ] }],
+      },
+      {
+        heading: '8. Third-party Links',
+        blocks: [{ type: 'ul', items: [
+          'Our website may contain links to third-party websites for additional information.',
+          'We do not endorse or take responsibility for the content, privacy policies, or practices of any third-party sites.',
+        ] }],
+      },
+      {
+        heading: '9. Privacy Policy',
+        blocks: [{ type: 'ul', items: [
+          'Your use of our website is also governed by our Privacy Policy, which outlines how we collect, use, and protect your personal data.',
+        ] }],
+      },
+      {
+        heading: '10. Changes to Terms of Use',
+        blocks: [{ type: 'ul', items: [
+          'We reserve the right to modify these terms at any time without prior notice.',
+          'Continued use of our website after changes are made constitutes acceptance of the revised terms.',
+        ] }],
+      },
+      {
+        heading: '11. Contact Information',
+        blocks: [
+          { type: 'p', text: 'For any questions regarding these Terms of Use, please contact us at:' },
+          {
+            type: 'contact',
+            lines: [
+              { value: 'Ecopadi UK' },
+              { label: 'Phone', value: CONTACT_PHONE, href: `tel:${CONTACT_PHONE}` },
+              { label: 'Email', value: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
+            ],
+          },
+        ],
+      },
+    ],
+    outro: ['By using this website, you acknowledge that you have read, understood, and agreed to these Terms of Use.'],
+    footnote: 'UK Registration Company Number: 17215991',
   },
 };
+
+function LegalDocument({ doc }) {
+  return (
+    <>
+      {doc.intro.map((t, i) => (
+        <p key={i} className="muted" style={{ lineHeight: 1.75, marginBottom: 12 }}>
+          {t.includes('https://ecopadi.com/')
+            ? <>{t.split('https://ecopadi.com/')[0]}<a href="https://ecopadi.com/" style={{ color: 'var(--pantry)', textDecoration: 'underline' }}>https://ecopadi.com/</a>{t.split('https://ecopadi.com/')[1]}</>
+            : t}
+        </p>
+      ))}
+      {doc.sections.map((section) => (
+        <div key={section.heading} style={{ margin: '30px 0 0' }}>
+          <h2 style={{ fontSize: 19, color: 'var(--pantry)', marginBottom: 10 }}>{section.heading}</h2>
+          {section.blocks.map((block, i) => {
+            if (block.type === 'p') return <p key={i} className="muted" style={{ lineHeight: 1.75, marginBottom: 10 }}>{rich(block.text)}</p>;
+            if (block.type === 'h3') return <h3 key={i} style={{ fontSize: 15.5, fontWeight: 600, color: 'var(--charcoal)', margin: '16px 0 6px' }}>{block.text}</h3>;
+            if (block.type === 'ul') {
+              return (
+                <ul key={i} style={{ margin: '8px 0 10px 20px', color: 'var(--charcoal-soft)', lineHeight: 1.75 }}>
+                  {block.items.map((item, j) => <li key={j}>{rich(item)}</li>)}
+                </ul>
+              );
+            }
+            if (block.type === 'contact') {
+              return (
+                <div key={i} className="muted" style={{ lineHeight: 1.9, marginBottom: 10 }}>
+                  {block.lines.map((l, j) => (
+                    <div key={j}>
+                      {l.label && <strong style={{ color: 'var(--charcoal)' }}>{l.label}: </strong>}
+                      {l.href ? <a href={l.href} style={{ color: 'var(--pantry)', textDecoration: 'underline' }}>{l.value}</a> : l.value}
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      ))}
+      {doc.outro?.map((t, i) => (
+        <p key={i} className="muted" style={{ lineHeight: 1.75, margin: '30px 0 10px' }}>{t}</p>
+      ))}
+      {doc.footnote && (
+        <p className="muted" style={{ fontSize: 12.5, marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--line)' }}>{doc.footnote}</p>
+      )}
+    </>
+  );
+}
 
 const PRIVACY_SECTIONS = [
   {
@@ -152,16 +377,13 @@ export default function Legal() {
     );
   }
 
-  const content = PLACEHOLDER_PAGES[page] || PLACEHOLDER_PAGES.terms;
+  const doc = LEGAL_DOCS[page] || LEGAL_DOCS.terms;
   return (
     <section className="section">
-     <div className="wrap legal-wrap" style={{ maxWidth: 720 }}>
+     <div className="wrap legal-wrap" style={{ maxWidth: 760 }}>
       <div className="eyebrow">Legal</div>
-      <h1 style={{ fontSize: 'clamp(26px, 7vw, 34px)', margin: '14px 0 20px', color: 'var(--pantry)' }}>{content.title}</h1>
-      <div className="card" style={{ padding: 24, borderColor: 'rgba(178,58,46,0.3)', background: 'rgba(178,58,46,0.05)' }}>
-        <span className="badge badge-placeholder">Placeholder — awaiting your document</span>
-        <p className="muted" style={{ marginTop: 14, lineHeight: 1.7 }}>{content.body}</p>
-      </div>
+      <h1 style={{ fontSize: 'clamp(26px, 7vw, 34px)', margin: '14px 0 20px', color: 'var(--pantry)' }}>{doc.title}</h1>
+      <LegalDocument doc={doc} />
      </div>
     </section>
   );
