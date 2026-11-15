@@ -29,13 +29,13 @@ export default function Footer() {
             <h4>Get In Touch</h4>
             <p>Birmingham, United Kingdom</p>
             <p>+44 (0)7901 555647</p>
-            <a href="mailto:ecopadilimiteduk@gmail.com">ecopadilimiteduk@gmail.com</a>
+            <a href="mailto:ecopadiuk@gmail.com">ecopadiuk@gmail.com</a>
             <a href="#" target="_blank" rel="noreferrer">Facebook: Ecopadi UK</a>
             <a href="#" target="_blank" rel="noreferrer">Instagram: @ecopadiuk</a>
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} Ecopadi UK Limited. Bringing Africa closer to home.</span>
+          <span>© {new Date().getFullYear()} Ecopadi UK. Bringing Africa closer to home.</span>
           <div className="footer-dots"><span /><span /><span /></div>
         </div>
       </div>
