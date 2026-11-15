@@ -5,7 +5,7 @@ import { api } from '../api';
 import { formatPence } from '../format';
 
 export default function Account() {
-  const { user, token, loading, joinVip } = useAuth();
+  const { user, token, loading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [rewardSettings, setRewardSettings] = useState(null);
 
@@ -31,21 +31,6 @@ export default function Account() {
         </div>
 
         <div className="account-grid">
-          <div className="card" style={{ padding: 26 }}>
-            <h3 style={{ fontSize: 18, marginBottom: 10 }}>VIP Status</h3>
-            {user.is_vip ? (
-              <>
-                <span className="badge badge-vip">VIP Member</span>
-                <p className="muted" style={{ marginTop: 12 }}>Free delivery on orders £50+.</p>
-              </>
-            ) : (
-              <>
-                <p className="muted" style={{ marginBottom: 14 }}>Join free for delivery perks and reward points — no minimum order required.</p>
-                <button className="btn btn-primary" onClick={joinVip}>Become a VIP — Free</button>
-              </>
-            )}
-          </div>
-
           <div className="card reward-card" style={{ padding: 26 }}>
             <h3 style={{ fontSize: 18, marginBottom: 10 }}>
               <span className="reward-icon" role="img" aria-label="Reward points">🎁</span> Reward Points

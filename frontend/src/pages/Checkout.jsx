@@ -41,10 +41,9 @@ export default function Checkout() {
   }
 
   const discountPence = discount?.discountPence || 0;
-  const isVip = user?.is_vip;
   const isIreland = deliveryCountry === 'Ireland';
   const baseDelivery = isIreland ? 799 : 499;
-  const freeDelivery = isVip && subtotalPence - discountPence >= 5000;
+  const freeDelivery = subtotalPence - discountPence >= 10000;
   const deliveryFeePence = freeDelivery ? 0 : baseDelivery;
 
   // How much of the customer's reward balance is actually redeemable right
@@ -125,7 +124,7 @@ export default function Checkout() {
             <fieldset>
               <legend>Contact details</legend>
               <p className="muted" style={{ marginBottom: 10, fontSize: 13.5 }}>
-                Checking out as a guest. <Link to="/login">Log in</Link> if you have a VIP account for free delivery and reward points.
+                Checking out as a guest. <Link to="/login">Log in</Link> if you have an account to earn and redeem reward points.
               </p>
               <input placeholder="Full name" required value={guestName} onChange={(e) => setGuestName(e.target.value)} />
               <input type="email" placeholder="Email address" required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} />
@@ -146,7 +145,7 @@ export default function Checkout() {
             </div>
             <p className="muted" style={{ fontSize: 13 }}>
               Standard delivery: 2–3 working days (UK) · 3–5 working days (Ireland).
-              {isVip ? ' As a VIP, orders £50+ get free delivery.' : ' Join VIP free for delivery perks.'}
+              {' Free delivery on orders over £100.'}
             </p>
           </fieldset>
 
@@ -233,7 +232,7 @@ export default function Checkout() {
           <div className="summary-line"><span>Subtotal</span><strong>{formatPence(subtotalPence)}</strong></div>
           {discountPence > 0 && <div className="summary-line"><span>Discount</span><strong>−{formatPence(discountPence)}</strong></div>}
           {pointsDiscountPence > 0 && <div className="summary-line"><span>🎁 Reward points</span><strong>−{formatPence(pointsDiscountPence)}</strong></div>}
-          <div className="summary-line"><span>Delivery</span><strong>{freeDelivery ? 'Free (VIP)' : formatPence(deliveryFeePence)}</strong></div>
+          <div className="summary-line"><span>Delivery</span><strong>{freeDelivery ? 'Free' : formatPence(deliveryFeePence)}</strong></div>
           <hr />
           <div className="summary-line total"><span>Total</span><strong>{formatPence(totalPence)}</strong></div>
         </aside>

@@ -32,7 +32,6 @@ export const api = {
   register: (payload) => request('/auth/register', { method: 'POST', body: payload }),
   login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
   me: (token) => request('/auth/me', { token }),
-  joinVip: (token) => request('/auth/vip/join', { method: 'POST', token }),
 
   // Reviews
   submitReview: (payload) => request('/reviews', { method: 'POST', body: payload }),
@@ -145,7 +144,6 @@ export const api = {
   adminReorderCategories: (order, token) => request('/admin/categories/reorder', { method: 'PUT', body: { order }, token }),
 
   // VIP Concierge — the paid monthly personal-shopping subscription.
-  // Separate from api.joinVip, which is the free VIP program.
   conciergeStatus: (token) => request('/concierge/status', { token }),
   conciergeCreateCheckoutSession: (token) => request('/concierge/checkout-session', { method: 'POST', token }),
   conciergeBillingPortal: (token) => request('/concierge/billing-portal', { method: 'POST', token }),

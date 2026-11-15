@@ -38,7 +38,7 @@ export default function Home() {
             <p className="lede">Carefully sourced and delivered across the United Kingdom — for homes, restaurants, retailers, and food lovers everywhere.</p>
             <div className="hero-actions">
               <Link to="/shop" className="btn btn-primary">Shop groceries</Link>
-              <Link to="/vip" className="btn btn-ghost" style={{ color: 'var(--cream)', borderColor: 'rgba(248,245,239,0.6)' }}>Join VIP — free</Link>
+              <Link to="/delivery" className="btn btn-ghost" style={{ color: 'var(--cream)', borderColor: 'rgba(248,245,239,0.6)' }}>Delivery info</Link>
             </div>
             <div className="hero-tagline">Fresh <span>•</span> Authentic <span>•</span> Trusted</div>
           </div>
@@ -50,8 +50,8 @@ export default function Home() {
           <img src="/brand/market-produce.jpg" alt="" />
           <div className="promo-text"><div className="promo-over">The pantry</div><h3>Everything for a proper African kitchen</h3><span className="promo-cta">Shop now</span></div>
         </Link>
-        <Link to="/vip" className="promo-tile no-photo">
-          <div className="promo-text"><div className="promo-over">Free to join</div><h3>Become a VIP — free delivery, rewards &amp; offers</h3><span className="promo-cta">Join VIP</span></div>
+        <Link to="/delivery" className="promo-tile no-photo">
+          <div className="promo-text"><div className="promo-over">Delivery</div><h3>Free UK delivery on every order over £100</h3><span className="promo-cta">Delivery info</span></div>
         </Link>
         <Link to="/concierge" className="promo-tile">
           <img src="/brand/spice-bowls.jpg" alt="" />

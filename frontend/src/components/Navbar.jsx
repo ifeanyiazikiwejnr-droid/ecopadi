@@ -12,10 +12,9 @@ export default function Navbar() {
     <>
     <div className="utility-bar">
       <div className="utility-inner wrap">
-        <span>Free UK delivery on orders over £50 for VIP members</span>
+        <span>Free UK delivery on orders over £100</span>
         <div className="utility-links">
           <Link to="/order-lookup">Track an order</Link>
-          <Link to="/vip">Join VIP</Link>
           <Link to="/delivery">Delivery info</Link>
         </div>
       </div>
@@ -29,7 +28,6 @@ export default function Navbar() {
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
           <NavLink to="/shop" onClick={() => setMenuOpen(false)}>Shop</NavLink>
           <NavLink to="/delivery" onClick={() => setMenuOpen(false)}>Delivery</NavLink>
-          <NavLink to="/vip" onClick={() => setMenuOpen(false)}>VIP</NavLink>
           <NavLink to="/concierge" onClick={() => setMenuOpen(false)}>VIP Concierge</NavLink>
           <NavLink to="/faq" onClick={() => setMenuOpen(false)}>FAQ</NavLink>
           {user ? (

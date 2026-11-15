@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
@@ -14,7 +14,6 @@ import OrderLookup from './pages/OrderLookup';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Account from './pages/Account';
-import VIP from './pages/VIP';
 import Concierge from './pages/Concierge';
 import FAQ from './pages/FAQ';
 import Delivery from './pages/Delivery';
@@ -46,7 +45,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/account" element={<Account />} />
-          <Route path="/vip" element={<VIP />} />
+          <Route path="/vip" element={<Navigate to="/" replace />} />
           <Route path="/concierge" element={<Concierge />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/delivery" element={<Delivery />} />

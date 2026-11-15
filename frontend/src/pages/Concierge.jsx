@@ -101,8 +101,7 @@ export default function Concierge() {
           and ship it straight to your doorstep.
         </p>
         <p className="muted" style={{ fontSize: 14 }}>
-          This is a separate, paid service from our free <Link to="/vip">VIP program</Link> — concierge sourcing is
-          £10/month, billed monthly, cancel anytime.
+          VIP Concierge is £10/month, billed monthly, cancel anytime.
         </p>
 
         {justSubscribed && <p style={{ color: 'var(--leaf)', fontWeight: 700, marginTop: 20 }}>✓ Subscription confirmed — welcome to VIP Concierge!</p>}

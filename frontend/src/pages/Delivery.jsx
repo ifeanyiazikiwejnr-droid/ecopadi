@@ -17,10 +17,9 @@ export default function Delivery() {
 
       <div className="promise-strip" style={{ marginTop: 40, borderRadius: 20 }}>
         <div className="promise-inner" style={{ padding: 40, flexDirection: 'column', alignItems: 'flex-start', gap: 16 }}>
-          <h2 style={{ fontSize: 24 }}>Become a VIP customer</h2>
+          <h2 style={{ fontSize: 24 }}>Free delivery on orders over £100</h2>
           <p style={{ color: 'rgba(248,245,239,0.8)', maxWidth: 520 }}>
-            Sign up for a free monthly subscription and get free delivery for orders worth £50 or more.
-            As a VIP customer you have access to exclusive benefits and discount offers — and it's completely free to join.
+            Spend £100 or more in a single order and we'll deliver it free anywhere in the UK — no code and no account needed.
           </p>
         </div>
       </div>

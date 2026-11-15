@@ -7,7 +7,7 @@ function rich(text) {
   );
 }
 
-const CONTACT_EMAIL = 'ecopadilimiteduk@gmail.com';
+const CONTACT_EMAIL = 'ecopadiuk@gmail.com';
 const CONTACT_PHONE = '+447901555647';
 
 // Block types: p (paragraph), h3 (sub-heading), ul (bullet list),
@@ -90,7 +90,7 @@ const LEGAL_DOCS = {
   },
 
   terms: {
-    title: 'Terms of Use',
+    title: 'Terms and Conditions of Use',
     intro: [
       'Welcome to Ecopadi UK Ltd! By accessing or using our website, https://ecopadi.com/, you agree to be bound by these Terms of Use.',
       'If you do not agree with any part of these terms, please do not use our website.',

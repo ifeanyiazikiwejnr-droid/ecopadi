@@ -8,7 +8,7 @@ const router = createAsyncRouter();
 
 const DELIVERY_FEE_UK_PENCE = 499;
 const DELIVERY_FEE_IE_PENCE = 799;
-const VIP_FREE_DELIVERY_THRESHOLD_PENCE = 5000;
+const FREE_DELIVERY_THRESHOLD_PENCE = 10000; // free delivery on every order of £100 or more
 
 function generateOrderNumber() {
   const stamp = Date.now().toString(36).toUpperCase();
@@ -157,10 +157,10 @@ router.post('/', optionalAuth, async (req, res) => {
       }
     }
 
-    // Delivery fee — VIP customers get free delivery on orders £50+
+    // Delivery fee — free on orders £100+ (guests and account holders alike)
     const isIreland = (deliveryCountry || 'United Kingdom').toLowerCase().includes('ireland');
     let deliveryFeePence = isIreland ? DELIVERY_FEE_IE_PENCE : DELIVERY_FEE_UK_PENCE;
-    if (req.user && req.user.is_vip && subtotalPence - discountPence >= VIP_FREE_DELIVERY_THRESHOLD_PENCE) {
+    if (subtotalPence - discountPence >= FREE_DELIVERY_THRESHOLD_PENCE) {
       deliveryFeePence = 0;
     }
 

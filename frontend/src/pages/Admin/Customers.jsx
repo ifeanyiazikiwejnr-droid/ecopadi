@@ -25,7 +25,6 @@ export default function AdminCustomers() {
           <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>VIP</th>
             <th>Reward Points</th>
             <th>Joined</th>
           </tr>
@@ -35,7 +34,6 @@ export default function AdminCustomers() {
             <tr key={c.id}>
               <td>{c.full_name}</td>
               <td className="muted">{c.email}</td>
-              <td>{c.is_vip ? <span className="badge badge-vip">VIP</span> : <span className="muted">—</span>}</td>
               <td>{formatPence(c.reward_points)}</td>
               <td className="muted">{new Date(c.created_at).toLocaleDateString('en-GB')}</td>
             </tr>

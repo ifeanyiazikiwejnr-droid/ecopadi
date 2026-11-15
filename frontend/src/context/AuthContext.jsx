@@ -40,13 +40,8 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  async function joinVip() {
-    const updated = await api.joinVip(token);
-    setUser((u) => ({ ...u, ...updated }));
-  }
-
   return (
-    <AuthContext.Provider value={{ token, user, loading, login, register, logout, joinVip }}>
+    <AuthContext.Provider value={{ token, user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
